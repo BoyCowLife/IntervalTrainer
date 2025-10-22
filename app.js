@@ -1,38 +1,42 @@
-// Pitch Detector using Autocorrelation
+// Improved Pitch Detector with better sensitivity
 class PitchDetector {
     constructor() {
         this.audioContext = null;
         this.analyser = null;
         this.mediaStream = null;
-        this.bufferLength = 2048;
+        this.bufferLength = 4096; // Increased for better low frequency detection
         this.buffer = new Float32Array(this.bufferLength);
         this.isListening = false;
         this.onPitchDetected = null;
         this.noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
         this.A4 = 440;
+        this.lastDetectedNote = null;
+        this.onVolumeChange = null; // For debugging
     }
 
     async initialize() {
         try {
             this.mediaStream = await navigator.mediaDevices.getUserMedia({ 
                 audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    autoGainControl: false
+                    echoCancellation: false, // Changed to false for instruments
+                    noiseSuppression: false, // Changed to false
+                    autoGainControl: true
                 } 
             });
             
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             this.analyser = this.audioContext.createAnalyser();
             this.analyser.fftSize = this.bufferLength * 2;
-            this.analyser.smoothingTimeConstant = 0.8;
+            this.analyser.smoothingTimeConstant = 0.3; // Less smoothing for faster response
             
             const source = this.audioContext.createMediaStreamSource(this.mediaStream);
             source.connect(this.analyser);
             
+            console.log('✅ Audio initialized successfully');
+            console.log('Sample rate:', this.audioContext.sampleRate);
             return true;
         } catch (error) {
-            console.error('Error initializing audio:', error);
+            console.error('❌ Error initializing audio:', error);
             return false;
         }
     }
@@ -45,11 +49,13 @@ class PitchDetector {
         
         this.isListening = true;
         this.onPitchDetected = callback;
+        console.log('🎤 Started listening...');
         this.detectPitch();
     }
 
     stopListening() {
         this.isListening = false;
+        console.log('🛑 Stopped listening');
     }
 
     detectPitch() {
@@ -57,12 +63,32 @@ class PitchDetector {
 
         this.analyser.getFloatTimeDomainData(this.buffer);
         
+        // Calculate volume for debugging
+        let sum = 0;
+        for (let i = 0; i < this.buffer.length; i++) {
+            sum += this.buffer[i] * this.buffer[i];
+        }
+        const volume = Math.sqrt(sum / this.buffer.length);
+        
+        // Notify volume change for visual feedback
+        if (this.onVolumeChange) {
+            this.onVolumeChange(volume);
+        }
+        
         const pitch = this.autoCorrelate(this.buffer, this.audioContext.sampleRate);
         
-        if (pitch && pitch > 50 && pitch < 2000) {
+        // More permissive frequency range for piano
+        if (pitch && pitch > 20 && pitch < 4000) {
             const note = this.frequencyToNote(pitch);
-            if (this.onPitchDetected) {
-                this.onPitchDetected(note);
+            
+            // Only report if note changed or it's the first detection
+            if (!this.lastDetectedNote || this.lastDetectedNote !== note.note) {
+                console.log(`🎵 Detected: ${note.note} (${pitch.toFixed(2)} Hz) - Volume: ${volume.toFixed(3)}`);
+                this.lastDetectedNote = note.note;
+                
+                if (this.onPitchDetected) {
+                    this.onPitchDetected(note);
+                }
             }
         }
 
@@ -76,14 +102,17 @@ class PitchDetector {
         let bestCorrelation = 0;
         let rms = 0;
         
+        // Calculate RMS
         for (let i = 0; i < size; i++) {
             let val = buffer[i];
             rms += val * val;
         }
         rms = Math.sqrt(rms / size);
         
-        if (rms < 0.01) return -1;
-
+        // LOWERED threshold for better sensitivity
+        if (rms < 0.005) return -1; // Was 0.01, now 0.005
+        
+        // Find best autocorrelation
         let lastCorrelation = 1;
         for (let offset = 1; offset < maxSamples; offset++) {
             let correlation = 0;
@@ -94,26 +123,32 @@ class PitchDetector {
             
             correlation = 1 - (correlation / maxSamples);
             
-            if (correlation > 0.9 && correlation > lastCorrelation) {
-                let foundGoodCorrelation = false;
+            // LOWERED threshold for correlation
+            if (correlation > 0.7 && correlation > lastCorrelation) { // Was 0.9, now 0.7
                 
                 if (correlation > bestCorrelation) {
                     bestCorrelation = correlation;
                     bestOffset = offset;
-                    foundGoodCorrelation = true;
-                }
-                
-                if (foundGoodCorrelation) {
-                    let shift = (buffer[bestOffset + 1] - buffer[bestOffset - 1]) / 
-                               (2 * (2 * buffer[bestOffset] - buffer[bestOffset - 1] - buffer[bestOffset + 1]));
-                    return sampleRate / (bestOffset + shift);
                 }
             }
             
             lastCorrelation = correlation;
         }
         
-        if (bestCorrelation > 0.01) {
+        // LOWERED threshold for final correlation
+        if (bestCorrelation > 0.01 && bestOffset > 0) {
+            // Parabolic interpolation for better accuracy
+            if (bestOffset < maxSamples - 1 && bestOffset > 0) {
+                let y1 = buffer[bestOffset - 1];
+                let y2 = buffer[bestOffset];
+                let y3 = buffer[bestOffset + 1];
+                let shift = (y3 - y1) / (2 * (2 * y2 - y1 - y3));
+                
+                if (isFinite(shift) && Math.abs(shift) < 1) {
+                    return sampleRate / (bestOffset + shift);
+                }
+            }
+            
             return sampleRate / bestOffset;
         }
         
@@ -147,6 +182,8 @@ class PitchDetector {
         if (this.audioContext) {
             this.audioContext.close();
         }
+        
+        console.log('🔇 Audio stopped and cleaned up');
     }
 }
 
@@ -206,6 +243,18 @@ class IntervalTrainerApp {
         document.getElementById('restartBtn').addEventListener('click', () => this.reset());
         document.getElementById('requestMicBtn').addEventListener('click', () => this.requestMicrophone());
         
+        // Add volume indicator for debugging
+        this.pitchDetector.onVolumeChange = (volume) => {
+            const indicator = document.getElementById('listeningIndicator');
+            if (indicator && !indicator.classList.contains('hidden')) {
+                const pulse = indicator.querySelector('.pulse');
+                if (pulse && volume > 0.01) {
+                    pulse.style.backgroundColor = volume > 0.05 ? '#4caf50' : '#4a90e2';
+                    pulse.style.transform = `scale(${1 + volume * 10})`;
+                }
+            }
+        };
+        
         this.checkMicrophonePermission();
     }
 
@@ -215,6 +264,7 @@ class IntervalTrainerApp {
             stream.getTracks().forEach(track => track.stop());
             this.showScreen('setup');
         } catch (error) {
+            console.error('Microphone permission error:', error);
             this.showScreen('permission');
         }
     }
@@ -278,7 +328,7 @@ class IntervalTrainerApp {
 
         this.currentQuestion = this.generateQuestion();
         
-        // Update UI to show scale degree instead of interval
+        // Update UI to show scale degree
         document.getElementById('baseNote').textContent = this.scales[this.selectedScale].display + ' Maggiore';
         document.getElementById('targetInterval').textContent = this.currentQuestion.degreeName;
         
@@ -291,7 +341,6 @@ class IntervalTrainerApp {
     generateQuestion() {
         const scale = this.scales[this.selectedScale];
         
-        // Select random scale degree (0-6 for I-VII)
         const degreeIndex = Math.floor(Math.random() * 7);
         const degreeKeys = Object.keys(this.degrees);
         const degreeKey = degreeKeys[degreeIndex];
@@ -338,19 +387,24 @@ class IntervalTrainerApp {
             if (!this.isWaitingForAnswer) return;
             
             this.detectedNotes.push(noteData.note);
+            console.log(`📝 Collected note: ${noteData.note} (total: ${this.detectedNotes.length})`);
             
             if (this.noteDetectionTimeout) {
                 clearTimeout(this.noteDetectionTimeout);
             }
             
+            // Increased timeout for piano (notes decay slower)
             this.noteDetectionTimeout = setTimeout(() => {
                 this.evaluateAnswer();
-            }, 500);
+            }, 800); // Was 500, now 800ms
         });
     }
 
     evaluateAnswer() {
-        if (!this.isWaitingForAnswer || this.detectedNotes.length === 0) return;
+        if (!this.isWaitingForAnswer || this.detectedNotes.length === 0) {
+            console.log('⚠️ No notes detected or not waiting');
+            return;
+        }
         
         this.isWaitingForAnswer = false;
         this.pitchDetector.stopListening();
@@ -360,13 +414,15 @@ class IntervalTrainerApp {
         const normalizedDetected = this.normalizeNote(detectedNote);
         const normalizedTarget = this.normalizeNote(this.currentQuestion.targetNote);
         
+        console.log(`🎯 Target: ${normalizedTarget}, Detected: ${normalizedDetected}`);
+        
         const isCorrect = normalizedDetected === normalizedTarget;
         
         this.showFeedback(isCorrect, detectedNote);
         
         if (isCorrect) {
             this.correctAnswers++;
-            setTimeout(() => this.nextQuestion(), 1000);
+            setTimeout(() => this.nextQuestion(), 1500);
         } else {
             this.wrongAnswers++;
             setTimeout(() => this.nextQuestion(), 3000);
@@ -390,6 +446,8 @@ class IntervalTrainerApp {
                 mostCommon = note;
             }
         });
+        
+        console.log('📊 Note counts:', counts, '→ Most common:', mostCommon);
         
         return mostCommon;
     }
@@ -449,5 +507,6 @@ class IntervalTrainerApp {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 App loaded');
     window.app = new IntervalTrainerApp();
 });
