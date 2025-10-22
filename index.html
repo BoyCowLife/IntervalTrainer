@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>Interval Trainer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Setup Screen -->
+        <div id="setupScreen" class="screen active">
+            <h1>🎸 Interval Trainer</h1>
+            <p class="subtitle">Allena il tuo orecchio musicale</p>
+            
+            <div class="setup-section">
+                <label for="scaleSelect">Seleziona Scala</label>
+                <select id="scaleSelect">
+                    <option value="random">🎲 Scala Casuale</option>
+                    <option value="C">Do (C) Maggiore</option>
+                    <option value="G">Sol (G) Maggiore</option>
+                    <option value="D">Re (D) Maggiore</option>
+                    <option value="A">La (A) Maggiore</option>
+                    <option value="E">Mi (E) Maggiore</option>
+                    <option value="B">Si (B) Maggiore</option>
+                    <option value="F#">Fa# (F#) Maggiore</option>
+                    <option value="Db">Reb (Db) Maggiore</option>
+                    <option value="Ab">Lab (Ab) Maggiore</option>
+                    <option value="Eb">Mib (Eb) Maggiore</option>
+                    <option value="Bb">Sib (Bb) Maggiore</option>
+                    <option value="F">Fa (F) Maggiore</option>
+                </select>
+            </div>
+
+            <div class="setup-section">
+                <label>Intervalli da Praticare</label>
+                <div class="interval-options">
+                    <label class="checkbox-label">
+                        <input type="checkbox" class="interval-checkbox" value="2M" checked> 2ª Maggiore
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" class="interval-checkbox" value="3M" checked> 3ª Maggiore
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" class="interval-checkbox" value="4P" checked> 4ª Giusta
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" class="interval-checkbox" value="5P" checked> 5ª Giusta
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" class="interval-checkbox" value="6M" checked> 6ª Maggiore
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" class="interval-checkbox" value="7M" checked> 7ª Maggiore
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" class="interval-checkbox" value="8P" checked> 8ª (Ottava)
+                    </label>
+                </div>
+            </div>
+
+            <button id="startBtn" class="btn btn-primary">Inizia Sessione (30 Quiz)</button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quizScreen" class="screen">
+            <div class="header">
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <div class="quiz-info">
+                    <span id="quizCounter">1/30</span>
+                    <span id="currentScale">Do Maggiore</span>
+                </div>
+            </div>
+
+            <div class="quiz-content">
+                <div id="feedbackArea" class="feedback-area hidden">
+                    <div id="feedbackIcon"></div>
+                    <div id="feedbackText"></div>
+                </div>
+
+                <div id="questionArea" class="question-area">
+                    <h2>Suona questo intervallo:</h2>
+                    <div class="interval-display">
+                        <div id="baseNote" class="base-note">Do</div>
+                        <div class="arrow">→</div>
+                        <div id="targetInterval" class="target-interval">3ª Maggiore</div>
+                    </div>
+                    <div id="listeningIndicator" class="listening-indicator hidden">
+                        <div class="pulse"></div>
+                        <span>In ascolto...</span>
+                    </div>
+                </div>
+
+                <div class="score-area">
+                    <div class="score-item">
+                        <span class="score-label">Corrette</span>
+                        <span id="correctCount" class="score-value correct">0</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">Errate</span>
+                        <span id="wrongCount" class="score-value wrong">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <button id="stopBtn" class="btn btn-secondary">Stop</button>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="resultsScreen" class="screen">
+            <h1>🎉 Sessione Completata!</h1>
+            
+            <div class="results-summary">
+                <div class="result-card">
+                    <div class="result-number" id="finalCorrect">0</div>
+                    <div class="result-label">Risposte Corrette</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-number" id="finalWrong">0</div>
+                    <div class="result-label">Risposte Errate</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-number" id="finalAccuracy">0%</div>
+                    <div class="result-label">Accuratezza</div>
+                </div>
+            </div>
+
+            <button id="restartBtn" class="btn btn-primary">Nuova Sessione</button>
+        </div>
+
+        <!-- Permission Screen -->
+        <div id="permissionScreen" class="screen">
+            <h2>🎤 Accesso al Microfono</h2>
+            <p>Questa app ha bisogno del microfono per ascoltare le note che suoni.</p>
+            <button id="requestMicBtn" class="btn btn-primary">Consenti Accesso</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
