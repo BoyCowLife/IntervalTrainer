@@ -6,15 +6,432 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1a1a2e">
-    <title>Interval Trainer</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Scale Degree Trainer</title>
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #4a90e2;
+    --secondary-color: #7b68ee;
+    --success-color: #4caf50;
+    --error-color: #f44336;
+    --bg-dark: #1a1a2e;
+    --bg-card: #16213e;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, var(--bg-dark) 0%, #0f3460 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+.container {
+    max-width: 100%;
+    width: 100%;
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.screen {
+    display: none;
+    flex-direction: column;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.screen.active {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#setupScreen {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+#setupScreen h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+    font-size: 1.1rem;
+}
+
+.setup-section {
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 30px;
+    text-align: left;
+}
+
+.setup-section label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+#scaleSelect {
+    width: 100%;
+    padding: 15px;
+    font-size: 1rem;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 2px solid var(--primary-color);
+    border-radius: 12px;
+    cursor: pointer;
+    outline: none;
+}
+
+.info-box {
+    background: rgba(74, 144, 226, 0.1);
+    border: 2px solid var(--primary-color);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    max-width: 400px;
+    text-align: left;
+}
+
+.info-box h3 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.info-box p {
+    margin: 10px 0;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.btn {
+    padding: 16px 32px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin: 10px 0;
+    width: 100%;
+    max-width: 400px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(74, 144, 226, 0.3);
+}
+
+.btn-secondary {
+    background: var(--error-color);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #d32f2f;
+}
+
+#quizScreen {
+    justify-content: space-between;
+    height: 100vh;
+}
+
+.header {
+    margin-bottom: 30px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--bg-card);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.quiz-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.quiz-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.question-area {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.question-area h2 {
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+    color: var(--text-secondary);
+}
+
+.interval-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.base-note {
+    font-size: 2rem;
+    font-weight: bold;
+    padding: 20px 30px;
+    background: var(--bg-card);
+    border-radius: 12px;
+    border: 2px solid var(--primary-color);
+}
+
+.arrow {
+    font-size: 2rem;
+    color: var(--text-secondary);
+}
+
+.target-interval {
+    font-size: 2.5rem;
+    font-weight: bold;
+    padding: 20px 30px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 12px;
+}
+
+.listening-indicator {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 1.2rem;
+    color: var(--primary-color);
+}
+
+.listening-indicator.hidden {
+    display: none;
+}
+
+.pulse {
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.5);
+        opacity: 0.5;
+    }
+}
+
+.feedback-area {
+    text-align: center;
+    padding: 40px;
+    border-radius: 16px;
+    margin-bottom: 40px;
+}
+
+.feedback-area.hidden {
+    display: none;
+}
+
+.feedback-area.correct {
+    background: rgba(76, 175, 80, 0.2);
+    border: 2px solid var(--success-color);
+}
+
+.feedback-area.wrong {
+    background: rgba(244, 67, 54, 0.2);
+    border: 2px solid var(--error-color);
+}
+
+#feedbackIcon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+#feedbackText {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.feedback-detail {
+    margin-top: 15px;
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+}
+
+.score-area {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin: 30px 0;
+}
+
+.score-item {
+    text-align: center;
+}
+
+.score-label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.score-value {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.score-value.correct {
+    color: var(--success-color);
+}
+
+.score-value.wrong {
+    color: var(--error-color);
+}
+
+#resultsScreen {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+#resultsScreen h1 {
+    font-size: 2.5rem;
+    margin-bottom: 40px;
+}
+
+.results-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 40px;
+}
+
+.result-card {
+    background: var(--bg-card);
+    padding: 30px;
+    border-radius: 16px;
+    border: 2px solid var(--primary-color);
+}
+
+.result-number {
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+.result-label {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+
+#permissionScreen {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+#permissionScreen h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+#permissionScreen p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+    max-width: 400px;
+}
+
+@media (max-width: 480px) {
+    .interval-display {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .arrow {
+        transform: rotate(90deg);
+    }
+    
+    .base-note, .target-interval {
+        font-size: 1.5rem;
+        padding: 15px 25px;
+    }
+}
+
+@supports (-webkit-touch-callout: none) {
+    body {
+        min-height: -webkit-fill-available;
+    }
+    
+    .container {
+        min-height: -webkit-fill-available;
+    }
+}
+    </style>
 </head>
 <body>
     <div class="container">
-        <!-- Setup Screen -->
         <div id="setupScreen" class="screen active">
-            <h1>🎸 Interval Trainer</h1>
-            <p class="subtitle">Allena il tuo orecchio musicale</p>
+            <h1>🎸 Scale Degree Trainer</h1>
+            <p class="subtitle">Impara i gradi delle scale maggiori</p>
             
             <div class="setup-section">
                 <label for="scaleSelect">Seleziona Scala</label>
@@ -35,37 +452,16 @@
                 </select>
             </div>
 
-            <div class="setup-section">
-                <label>Intervalli da Praticare</label>
-                <div class="interval-options">
-                    <label class="checkbox-label">
-                        <input type="checkbox" class="interval-checkbox" value="2M" checked> 2ª Maggiore
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" class="interval-checkbox" value="3M" checked> 3ª Maggiore
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" class="interval-checkbox" value="4P" checked> 4ª Giusta
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" class="interval-checkbox" value="5P" checked> 5ª Giusta
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" class="interval-checkbox" value="6M" checked> 6ª Maggiore
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" class="interval-checkbox" value="7M" checked> 7ª Maggiore
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" class="interval-checkbox" value="8P" checked> 8ª (Ottava)
-                    </label>
-                </div>
+            <div class="info-box">
+                <h3>Come funziona:</h3>
+                <p>📍 L'app ti chiederà di suonare un grado della scala (es. "VI di La Maggiore")</p>
+                <p>🎸 Suona quella nota su qualsiasi ottava</p>
+                <p>✅ L'app riconosce la nota e ti dice se è corretta</p>
             </div>
 
             <button id="startBtn" class="btn btn-primary">Inizia Sessione (30 Quiz)</button>
         </div>
 
-        <!-- Quiz Screen -->
         <div id="quizScreen" class="screen">
             <div class="header">
                 <div class="progress-bar">
@@ -84,15 +480,16 @@
                 </div>
 
                 <div id="questionArea" class="question-area">
-                    <h2>Suona questo intervallo:</h2>
+                    <h2>Suona questo grado della scala:</h2>
                     <div class="interval-display">
-                        <div id="baseNote" class="base-note">Do</div>
+                        <div id="baseNote" class="base-note">Do Maggiore</div>
                         <div class="arrow">→</div>
-                        <div id="targetInterval" class="target-interval">3ª Maggiore</div>
+                        <div id="targetInterval" class="target-interval">VI</div>
                     </div>
                     <div id="listeningIndicator" class="listening-indicator hidden">
                         <div class="pulse"></div>
                         <span>In ascolto...</span>
+                        <div id="detectedNoteDisplay" style="margin-left: 20px; font-size: 1.5rem; font-weight: bold; color: #4caf50;"></div>
                     </div>
                 </div>
 
@@ -111,7 +508,6 @@
             <button id="stopBtn" class="btn btn-secondary">Stop</button>
         </div>
 
-        <!-- Results Screen -->
         <div id="resultsScreen" class="screen">
             <h1>🎉 Sessione Completata!</h1>
             
@@ -133,7 +529,6 @@
             <button id="restartBtn" class="btn btn-primary">Nuova Sessione</button>
         </div>
 
-        <!-- Permission Screen -->
         <div id="permissionScreen" class="screen">
             <h2>🎤 Accesso al Microfono</h2>
             <p>Questa app ha bisogno del microfono per ascoltare le note che suoni.</p>
@@ -141,6 +536,510 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script>
+class PitchDetector {
+    constructor() {
+        this.audioContext = null;
+        this.analyser = null;
+        this.mediaStream = null;
+        this.bufferLength = 4096;
+        this.buffer = new Float32Array(this.bufferLength);
+        this.isListening = false;
+        this.onPitchDetected = null;
+        this.noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        this.A4 = 440;
+        this.lastDetectedNote = null;
+        this.onVolumeChange = null;
+    }
+
+    async initialize() {
+        try {
+            this.mediaStream = await navigator.mediaDevices.getUserMedia({ 
+                audio: {
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: true
+                } 
+            });
+            
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            this.analyser = this.audioContext.createAnalyser();
+            this.analyser.fftSize = this.bufferLength * 2;
+            this.analyser.smoothingTimeConstant = 0.3;
+            
+            const source = this.audioContext.createMediaStreamSource(this.mediaStream);
+            source.connect(this.analyser);
+            
+            console.log('✅ Audio initialized');
+            return true;
+        } catch (error) {
+            console.error('❌ Error:', error);
+            return false;
+        }
+    }
+
+    startListening(callback) {
+        if (!this.analyser) return;
+        this.isListening = true;
+        this.onPitchDetected = callback;
+        console.log('🎤 Listening...');
+        this.detectPitch();
+    }
+
+    stopListening() {
+        this.isListening = false;
+    }
+
+    detectPitch() {
+        if (!this.isListening) return;
+        this.analyser.getFloatTimeDomainData(this.buffer);
+        
+        let sum = 0;
+        for (let i = 0; i < this.buffer.length; i++) {
+            sum += this.buffer[i] * this.buffer[i];
+        }
+        const volume = Math.sqrt(sum / this.buffer.length);
+        
+        if (this.onVolumeChange) {
+            this.onVolumeChange(volume);
+        }
+        
+        const pitch = this.autoCorrelate(this.buffer, this.audioContext.sampleRate);
+        
+        if (pitch && pitch > 20 && pitch < 4000) {
+            const note = this.frequencyToNote(pitch);
+            
+            if (!this.lastDetectedNote || this.lastDetectedNote !== note.note) {
+                console.log(`🎵 ${note.note} (${pitch.toFixed(2)} Hz)`);
+                this.lastDetectedNote = note.note;
+                
+                if (this.onPitchDetected) {
+                    this.onPitchDetected(note);
+                }
+            }
+        }
+
+        requestAnimationFrame(() => this.detectPitch());
+    }
+
+    autoCorrelate(buffer, sampleRate) {
+        let size = buffer.length;
+        let maxSamples = Math.floor(size / 2);
+        let bestOffset = -1;
+        let bestCorrelation = 0;
+        let rms = 0;
+        
+        for (let i = 0; i < size; i++) {
+            let val = buffer[i];
+            rms += val * val;
+        }
+        rms = Math.sqrt(rms / size);
+        
+        if (rms < 0.015) return -1;
+        
+        let correlations = [];
+        let lastCorrelation = 1;
+        
+        for (let offset = 1; offset < maxSamples; offset++) {
+            let correlation = 0;
+
+            for (let i = 0; i < maxSamples; i++) {
+                correlation += Math.abs(buffer[i] - buffer[i + offset]);
+            }
+            
+            correlation = 1 - (correlation / maxSamples);
+            
+            if (correlation > 0.75 && correlation > lastCorrelation) {
+                correlations.push({ offset: offset, correlation: correlation });
+            }
+            
+            lastCorrelation = correlation;
+        }
+        
+        if (correlations.length === 0) return -1;
+        
+        correlations.sort((a, b) => b.correlation - a.correlation);
+        
+        bestCorrelation = correlations[0].correlation;
+        bestOffset = correlations[0].offset;
+        
+        if (bestCorrelation > 0.75 && bestOffset > 0) {
+            for (let i = 1; i < correlations.length && i < 3; i++) {
+                if (correlations[i].offset < bestOffset * 0.6) {
+                    if (correlations[i].correlation > bestCorrelation * 0.9) {
+                        bestOffset = correlations[i].offset;
+                        bestCorrelation = correlations[i].correlation;
+                        break;
+                    }
+                }
+            }
+            
+            if (bestOffset < maxSamples - 1 && bestOffset > 0) {
+                let y1 = buffer[bestOffset - 1];
+                let y2 = buffer[bestOffset];
+                let y3 = buffer[bestOffset + 1];
+                let shift = (y3 - y1) / (2 * (2 * y2 - y1 - y3));
+                
+                if (isFinite(shift) && Math.abs(shift) < 1) {
+                    return sampleRate / (bestOffset + shift);
+                }
+            }
+            
+            return sampleRate / bestOffset;
+        }
+        
+        return -1;
+    }
+
+    frequencyToNote(frequency) {
+        const noteNum = 12 * (Math.log(frequency / this.A4) / Math.log(2)) + 69;
+        const roundedNoteNum = Math.round(noteNum);
+        const noteName = this.noteNames[roundedNoteNum % 12];
+        const octave = Math.floor(roundedNoteNum / 12) - 1;
+        
+        return {
+            frequency: frequency,
+            note: noteName,
+            octave: octave,
+            fullNote: `${noteName}${octave}`
+        };
+    }
+
+    stop() {
+        this.isListening = false;
+        
+        if (this.mediaStream) {
+            this.mediaStream.getTracks().forEach(track => track.stop());
+            this.mediaStream = null;
+        }
+        
+        if (this.audioContext && this.audioContext.state !== 'closed') {
+            this.audioContext.close();
+            this.audioContext = null;
+        }
+    }
+}
+
+class IntervalTrainerApp {
+    constructor() {
+        this.pitchDetector = new PitchDetector();
+        this.currentQuiz = 0;
+        this.totalQuizzes = 30;
+        this.correctAnswers = 0;
+        this.wrongAnswers = 0;
+        this.selectedScale = null;
+        this.currentQuestion = null;
+        this.isWaitingForAnswer = false;
+        this.detectedNotes = [];
+        this.noteDetectionTimeout = null;
+        
+        this.degrees = {
+            'I': { index: 0, name: 'I (Tonica)' },
+            'II': { index: 1, name: 'II (Sopratonica)' },
+            'III': { index: 2, name: 'III (Mediante)' },
+            'IV': { index: 3, name: 'IV (Sottodominante)' },
+            'V': { index: 4, name: 'V (Dominante)' },
+            'VI': { index: 5, name: 'VI (Sopradominante)' },
+            'VII': { index: 6, name: 'VII (Sensibile)' }
+        };
+        
+        this.scales = {
+            'C': { notes: ['C', 'D', 'E', 'F', 'G', 'A', 'B'], display: 'Do' },
+            'G': { notes: ['G', 'A', 'B', 'C', 'D', 'E', 'F#'], display: 'Sol' },
+            'D': { notes: ['D', 'E', 'F#', 'G', 'A', 'B', 'C#'], display: 'Re' },
+            'A': { notes: ['A', 'B', 'C#', 'D', 'E', 'F#', 'G#'], display: 'La' },
+            'E': { notes: ['E', 'F#', 'G#', 'A', 'B', 'C#', 'D#'], display: 'Mi' },
+            'B': { notes: ['B', 'C#', 'D#', 'E', 'F#', 'G#', 'A#'], display: 'Si' },
+            'F#': { notes: ['F#', 'G#', 'A#', 'B', 'C#', 'D#', 'E#'], display: 'Fa#' },
+            'Db': { notes: ['Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb', 'C'], display: 'Reb' },
+            'Ab': { notes: ['Ab', 'Bb', 'C', 'Db', 'Eb', 'F', 'G'], display: 'Lab' },
+            'Eb': { notes: ['Eb', 'F', 'G', 'Ab', 'Bb', 'C', 'D'], display: 'Mib' },
+            'Bb': { notes: ['Bb', 'C', 'D', 'Eb', 'F', 'G', 'A'], display: 'Sib' },
+            'F': { notes: ['F', 'G', 'A', 'Bb', 'C', 'D', 'E'], display: 'Fa' }
+        };
+        
+        this.initializeUI();
+    }
+
+    initializeUI() {
+        this.screens = {
+            setup: document.getElementById('setupScreen'),
+            quiz: document.getElementById('quizScreen'),
+            results: document.getElementById('resultsScreen'),
+            permission: document.getElementById('permissionScreen')
+        };
+
+        document.getElementById('startBtn').addEventListener('click', () => this.startSession());
+        document.getElementById('stopBtn').addEventListener('click', () => this.stopSession());
+        document.getElementById('restartBtn').addEventListener('click', () => this.reset());
+        document.getElementById('requestMicBtn').addEventListener('click', () => this.requestMicrophone());
+        
+        this.pitchDetector.onVolumeChange = (volume) => {
+            const indicator = document.getElementById('listeningIndicator');
+            if (indicator && !indicator.classList.contains('hidden')) {
+                const pulse = indicator.querySelector('.pulse');
+                if (pulse && volume > 0.01) {
+                    pulse.style.backgroundColor = volume > 0.05 ? '#4caf50' : '#4a90e2';
+                }
+            }
+        };
+        
+        this.checkMicrophonePermission();
+    }
+
+    async checkMicrophonePermission() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.getTracks().forEach(track => track.stop());
+            this.showScreen('setup');
+        } catch (error) {
+            this.showScreen('permission');
+        }
+    }
+
+    async requestMicrophone() {
+        const initialized = await this.pitchDetector.initialize();
+        if (initialized) {
+            this.pitchDetector.stop();
+            this.showScreen('setup');
+        } else {
+            alert('Impossibile accedere al microfono.');
+        }
+    }
+
+    showScreen(screenName) {
+        Object.values(this.screens).forEach(screen => screen.classList.remove('active'));
+        this.screens[screenName].classList.add('active');
+    }
+
+    async startSession() {
+        const scaleSelect = document.getElementById('scaleSelect');
+        const scaleValue = scaleSelect.value;
+        
+        if (scaleValue === 'random') {
+            const scaleKeys = Object.keys(this.scales);
+            this.selectedScale = scaleKeys[Math.floor(Math.random() * scaleKeys.length)];
+        } else {
+            this.selectedScale = scaleValue;
+        }
+
+        const initialized = await this.pitchDetector.initialize();
+        if (!initialized) {
+            alert('Impossibile accedere al microfono.');
+            return;
+        }
+
+        this.currentQuiz = 0;
+        this.correctAnswers = 0;
+        this.wrongAnswers = 0;
+
+        document.getElementById('currentScale').textContent = this.scales[this.selectedScale].display + ' Maggiore';
+        
+        this.showScreen('quiz');
+        this.nextQuestion();
+    }
+
+    nextQuestion() {
+        this.currentQuiz++;
+        
+        if (this.currentQuiz > this.totalQuizzes) {
+            this.showResults();
+            return;
+        }
+
+        document.getElementById('quizCounter').textContent = `${this.currentQuiz}/${this.totalQuizzes}`;
+        document.getElementById('progressFill').style.width = `${(this.currentQuiz / this.totalQuizzes) * 100}%`;
+        document.getElementById('correctCount').textContent = this.correctAnswers;
+        document.getElementById('wrongCount').textContent = this.wrongAnswers;
+
+        this.currentQuestion = this.generateQuestion();
+        
+        document.getElementById('baseNote').textContent = this.scales[this.selectedScale].display + ' Maggiore';
+        document.getElementById('targetInterval').textContent = this.currentQuestion.degreeName;
+        
+        document.getElementById('feedbackArea').classList.add('hidden');
+        document.getElementById('questionArea').style.display = 'block';
+        
+        this.startListening();
+    }
+
+    generateQuestion() {
+        const scale = this.scales[this.selectedScale];
+        const degreeIndex = Math.floor(Math.random() * 7);
+        const degreeKeys = Object.keys(this.degrees);
+        const degreeKey = degreeKeys[degreeIndex];
+        const degree = this.degrees[degreeKey];
+        const targetNote = scale.notes[degree.index];
+        
+        return {
+            scaleName: scale.display + ' Maggiore',
+            degreeNumber: degreeKey,
+            degreeName: degree.name,
+            targetNote: this.normalizeNote(targetNote),
+            targetNoteDisplay: this.displayNote(targetNote)
+        };
+    }
+
+    normalizeNote(note) {
+        const flatsToSharps = {
+            'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#', 'E#': 'F'
+        };
+        return flatsToSharps[note] || note;
+    }
+
+    displayNote(note) {
+        const noteMap = {
+            'C': 'Do', 'C#': 'Do#', 'Db': 'Reb',
+            'D': 'Re', 'D#': 'Re#', 'Eb': 'Mib',
+            'E': 'Mi', 'E#': 'Fa',
+            'F': 'Fa', 'F#': 'Fa#', 'Gb': 'Solb',
+            'G': 'Sol', 'G#': 'Sol#', 'Ab': 'Lab',
+            'A': 'La', 'A#': 'La#', 'Bb': 'Sib',
+            'B': 'Si', 'B#': 'Do'
+        };
+        return noteMap[note] || note;
+    }
+
+    startListening() {
+        this.isWaitingForAnswer = true;
+        this.detectedNotes = [];
+        
+        document.getElementById('listeningIndicator').classList.remove('hidden');
+        document.getElementById('detectedNoteDisplay').textContent = '';
+        
+        this.pitchDetector.startListening((noteData) => {
+            if (!this.isWaitingForAnswer) return;
+            
+            const displayElement = document.getElementById('detectedNoteDisplay');
+            if (displayElement) {
+                displayElement.textContent = this.displayNote(noteData.note);
+            }
+            
+            this.detectedNotes.push(noteData.note);
+            console.log(`📝 ${noteData.note} (${this.detectedNotes.length})`);
+            
+            if (this.noteDetectionTimeout) {
+                clearTimeout(this.noteDetectionTimeout);
+            }
+            
+            if (this.detectedNotes.length >= 3) {
+                this.noteDetectionTimeout = setTimeout(() => {
+                    this.evaluateAnswer();
+                }, 1000);
+            }
+        });
+    }
+
+    evaluateAnswer() {
+        if (!this.isWaitingForAnswer || this.detectedNotes.length < 3) {
+            console.log(`⚠️ Not enough (${this.detectedNotes.length}/3)`);
+            return;
+        }
+        
+        this.isWaitingForAnswer = false;
+        this.pitchDetector.stopListening();
+        document.getElementById('listeningIndicator').classList.add('hidden');
+        
+        const detectedNote = this.getMostCommonNote(this.detectedNotes);
+        const normalizedDetected = this.normalizeNote(detectedNote);
+        const normalizedTarget = this.normalizeNote(this.currentQuestion.targetNote);
+        
+        console.log(`🎯 Target: ${normalizedTarget}, Got: ${normalizedDetected}`);
+        
+        const isCorrect = normalizedDetected === normalizedTarget;
+        
+        this.showFeedback(isCorrect, detectedNote);
+        
+        if (isCorrect) {
+            this.correctAnswers++;
+            setTimeout(() => this.nextQuestion(), 1500);
+        } else {
+            this.wrongAnswers++;
+            setTimeout(() => this.nextQuestion(), 3000);
+        }
+    }
+
+    getMostCommonNote(notes) {
+        if (notes.length === 0) return null;
+        
+        const counts = {};
+        notes.forEach(note => {
+            counts[note] = (counts[note] || 0) + 1;
+        });
+        
+        let maxCount = 0;
+        let mostCommon = notes[0];
+        
+        Object.keys(counts).forEach(note => {
+            if (counts[note] > maxCount) {
+                maxCount = counts[note];
+                mostCommon = note;
+            }
+        });
+        
+        console.log('📊', counts, '→', mostCommon);
+        
+        return mostCommon;
+    }
+
+    showFeedback(isCorrect, detectedNote) {
+        const feedbackArea = document.getElementById('feedbackArea');
+        const feedbackIcon = document.getElementById('feedbackIcon');
+        const feedbackText = document.getElementById('feedbackText');
+        
+        document.getElementById('questionArea').style.display = 'none';
+        feedbackArea.classList.remove('hidden', 'correct', 'wrong');
+        
+        if (isCorrect) {
+            feedbackArea.classList.add('correct');
+            feedbackIcon.textContent = '✓';
+            feedbackText.innerHTML = `
+                <div>Corretto!</div>
+                <div class="feedback-detail">Hai suonato: ${this.displayNote(detectedNote)}</div>
+            `;
+        } else {
+            feedbackArea.classList.add('wrong');
+            feedbackIcon.textContent = '✗';
+            feedbackText.innerHTML = `
+                <div>Sbagliato!</div>
+                <div class="feedback-detail">Hai suonato: ${this.displayNote(detectedNote)}</div>
+                <div class="feedback-detail">Il ${this.currentQuestion.degreeName} di ${this.currentQuestion.scaleName} è: ${this.currentQuestion.targetNoteDisplay}</div>
+            `;
+        }
+    }
+
+    stopSession() {
+        this.pitchDetector.stop();
+        this.showResults();
+    }
+
+    showResults() {
+        this.pitchDetector.stop();
+        
+        const accuracy = this.totalQuizzes > 0 
+            ? Math.round((this.correctAnswers / this.totalQuizzes) * 100) 
+            : 0;
+        
+        document.getElementById('finalCorrect').textContent = this.correctAnswers;
+        document.getElementById('finalWrong').textContent = this.wrongAnswers;
+        document.getElementById('finalAccuracy').textContent = accuracy + '%';
+        
+        this.showScreen('results');
+    }
+
+    reset() {
+        this.pitchDetector.stop();
+        this.currentQuiz = 0;
+        this.correctAnswers = 0;
+        this.wrongAnswers = 0;
+        this.showScreen('setup');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 App loaded');
+    window.app = new IntervalTrainerApp();
+});
+    </script>
 </body>
 </html>
