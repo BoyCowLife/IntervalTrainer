@@ -150,7 +150,7 @@ class PitchDetector {
     }
 }
 
-// Main Application
+// Main Application - Scale Degree Trainer
 class IntervalTrainerApp {
     constructor() {
         this.pitchDetector = new PitchDetector();
@@ -159,20 +159,20 @@ class IntervalTrainerApp {
         this.correctAnswers = 0;
         this.wrongAnswers = 0;
         this.selectedScale = null;
-        this.selectedIntervals = [];
         this.currentQuestion = null;
         this.isWaitingForAnswer = false;
         this.detectedNotes = [];
         this.noteDetectionTimeout = null;
         
-        this.intervals = {
-            '2M': { semitones: 2, name: '2ª Maggiore' },
-            '3M': { semitones: 4, name: '3ª Maggiore' },
-            '4P': { semitones: 5, name: '4ª Giusta' },
-            '5P': { semitones: 7, name: '5ª Giusta' },
-            '6M': { semitones: 9, name: '6ª Maggiore' },
-            '7M': { semitones: 11, name: '7ª Maggiore' },
-            '8P': { semitones: 12, name: '8ª (Ottava)' }
+        // Scale degrees
+        this.degrees = {
+            'I': { index: 0, name: 'I (Tonica)' },
+            'II': { index: 1, name: 'II (Sopratonica)' },
+            'III': { index: 2, name: 'III (Mediante)' },
+            'IV': { index: 3, name: 'IV (Sottodominante)' },
+            'V': { index: 4, name: 'V (Dominante)' },
+            'VI': { index: 5, name: 'VI (Sopradominante)' },
+            'VII': { index: 6, name: 'VII (Sensibile)' }
         };
         
         this.scales = {
@@ -246,14 +246,6 @@ class IntervalTrainerApp {
             this.selectedScale = scaleValue;
         }
 
-        const checkboxes = document.querySelectorAll('.interval-checkbox:checked');
-        this.selectedIntervals = Array.from(checkboxes).map(cb => cb.value);
-        
-        if (this.selectedIntervals.length === 0) {
-            alert('Seleziona almeno un intervallo!');
-            return;
-        }
-
         const initialized = await this.pitchDetector.initialize();
         if (!initialized) {
             alert('Impossibile accedere al microfono. Ricarica la pagina e riprova.');
@@ -286,8 +278,9 @@ class IntervalTrainerApp {
 
         this.currentQuestion = this.generateQuestion();
         
-        document.getElementById('baseNote').textContent = this.currentQuestion.baseNote;
-        document.getElementById('targetInterval').textContent = this.currentQuestion.intervalName;
+        // Update UI to show scale degree instead of interval
+        document.getElementById('baseNote').textContent = this.scales[this.selectedScale].display + ' Maggiore';
+        document.getElementById('targetInterval').textContent = this.currentQuestion.degreeName;
         
         document.getElementById('feedbackArea').classList.add('hidden');
         document.getElementById('questionArea').style.display = 'block';
@@ -296,28 +289,28 @@ class IntervalTrainerApp {
     }
 
     generateQuestion() {
-        const intervalKey = this.selectedIntervals[Math.floor(Math.random() * this.selectedIntervals.length)];
-        const interval = this.intervals[intervalKey];
-        
         const scale = this.scales[this.selectedScale];
-        const baseNote = scale.notes[Math.floor(Math.random() * scale.notes.length)];
         
-        const baseNoteIndex = this.pitchDetector.noteNames.indexOf(this.normalizeNote(baseNote));
-        const targetNoteIndex = (baseNoteIndex + interval.semitones) % 12;
-        const targetNote = this.pitchDetector.noteNames[targetNoteIndex];
+        // Select random scale degree (0-6 for I-VII)
+        const degreeIndex = Math.floor(Math.random() * 7);
+        const degreeKeys = Object.keys(this.degrees);
+        const degreeKey = degreeKeys[degreeIndex];
+        const degree = this.degrees[degreeKey];
+        
+        const targetNote = scale.notes[degree.index];
         
         return {
-            baseNote: this.displayNote(baseNote),
-            targetNote: targetNote,
-            intervalKey: intervalKey,
-            intervalName: interval.name,
-            intervalSemitones: interval.semitones
+            scaleName: scale.display + ' Maggiore',
+            degreeNumber: degreeKey,
+            degreeName: degree.name,
+            targetNote: this.normalizeNote(targetNote),
+            targetNoteDisplay: this.displayNote(targetNote)
         };
     }
 
     normalizeNote(note) {
         const flatsToSharps = {
-            'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#'
+            'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#', 'E#': 'F'
         };
         return flatsToSharps[note] || note;
     }
@@ -326,11 +319,11 @@ class IntervalTrainerApp {
         const noteMap = {
             'C': 'Do', 'C#': 'Do#', 'Db': 'Reb',
             'D': 'Re', 'D#': 'Re#', 'Eb': 'Mib',
-            'E': 'Mi', 'E#': 'Mi#',
+            'E': 'Mi', 'E#': 'Fa',
             'F': 'Fa', 'F#': 'Fa#', 'Gb': 'Solb',
             'G': 'Sol', 'G#': 'Sol#', 'Ab': 'Lab',
             'A': 'La', 'A#': 'La#', 'Bb': 'Sib',
-            'B': 'Si', 'B#': 'Si#'
+            'B': 'Si', 'B#': 'Do'
         };
         return noteMap[note] || note;
     }
@@ -412,37 +405,19 @@ class IntervalTrainerApp {
         if (isCorrect) {
             feedbackArea.classList.add('correct');
             feedbackIcon.textContent = '✓';
-            feedbackText.innerHTML = `<div>Corretto!</div>`;
+            feedbackText.innerHTML = `
+                <div>Corretto!</div>
+                <div class="feedback-detail">Hai suonato: ${this.displayNote(detectedNote)}</div>
+            `;
         } else {
             feedbackArea.classList.add('wrong');
             feedbackIcon.textContent = '✗';
-            
-            const detectedInterval = this.identifyInterval(detectedNote);
             feedbackText.innerHTML = `
                 <div>Sbagliato!</div>
-                <div class="feedback-detail">Hai suonato: ${this.displayNote(detectedNote)} (${detectedInterval})</div>
-                <div class="feedback-detail">Dovevi suonare: ${this.displayNote(this.currentQuestion.targetNote)} (${this.currentQuestion.intervalName})</div>
+                <div class="feedback-detail">Hai suonato: ${this.displayNote(detectedNote)}</div>
+                <div class="feedback-detail">Il ${this.currentQuestion.degreeName} di ${this.currentQuestion.scaleName} è: ${this.currentQuestion.targetNoteDisplay}</div>
             `;
         }
-    }
-
-    identifyInterval(detectedNote) {
-        const baseNoteNormalized = this.normalizeNote(this.currentQuestion.baseNote);
-        const detectedNormalized = this.normalizeNote(detectedNote);
-        
-        const baseIndex = this.pitchDetector.noteNames.indexOf(baseNoteNormalized);
-        const detectedIndex = this.pitchDetector.noteNames.indexOf(detectedNormalized);
-        
-        let semitones = detectedIndex - baseIndex;
-        if (semitones < 0) semitones += 12;
-        
-        for (const [key, interval] of Object.entries(this.intervals)) {
-            if (interval.semitones === semitones) {
-                return interval.name;
-            }
-        }
-        
-        return `${semitones} semitoni`;
     }
 
     stopSession() {
