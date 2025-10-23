@@ -454,9 +454,10 @@ body {
             <div class="info-box">
                 <h3>Come funziona:</h3>
                 <p>📍 L'app ti chiede di suonare un grado della scala</p>
-                <p>🎸 Suona la nota FORTE e LUNGA (2-3 secondi)</p>
+                <p>🎸 Suona la nota FORTE e LUNGA (3-4 secondi)</p>
                 <p>✅ Vedrai la nota rilevata in verde</p>
                 <p>📊 La barra si riempie fino alla valutazione</p>
+                <p>📱 Su iPhone: tieni la nota più a lungo!</p>
             </div>
 
             <button id="startBtn" class="btn btn-primary">Inizia Sessione (30 Quiz)</button>
@@ -546,7 +547,9 @@ class PitchDetector {
         this.audioContext = null;
         this.analyser = null;
         this.mediaStream = null;
-        this.bufferLength = 8192;
+        this.isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        // Smaller buffer for mobile = faster processing
+        this.bufferLength = this.isMobile ? 4096 : 8192;
         this.buffer = new Float32Array(this.bufferLength);
         this.isListening = false;
         this.onPitchDetected = null;
@@ -554,7 +557,8 @@ class PitchDetector {
         this.A4 = 440;
         this.lastDetectedNote = null;
         this.consecutiveCount = 0;
-        this.isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        // Mobile needs MORE consecutive detections to filter noise
+        this.minConsecutive = this.isMobile ? 4 : 2;
     }
 
     async initialize() {
@@ -628,10 +632,12 @@ class PitchDetector {
         if (pitch && pitch > 20 && pitch < 4000) {
             const note = this.frequencyToNote(pitch);
             
+            // Require same note detected multiple times in a row
             if (note.note === this.lastDetectedNote) {
                 this.consecutiveCount++;
                 
-                if (this.consecutiveCount >= 2 && this.onPitchDetected) {
+                // Use adaptive threshold: mobile needs more confirmations
+                if (this.consecutiveCount >= this.minConsecutive && this.onPitchDetected) {
                     this.onPitchDetected(note, volume);
                 }
             } else {
@@ -749,7 +755,8 @@ class IntervalTrainerApp {
         this.isWaitingForAnswer = false;
         this.detectedNotes = [];
         this.noteDetectionTimeout = null;
-        this.minDetections = 5;
+        // Mobile needs MORE total detections due to instability
+        this.minDetections = this.pitchDetector.isMobile ? 7 : 5;
         
         this.degrees = {
             'I': { index: 0, name: 'I (Tonica)' },
@@ -932,8 +939,6 @@ class IntervalTrainerApp {
                 barElement.style.width = progress + '%';
             }
             
-            console.log(`📝 ${noteData.note} (${this.detectedNotes.length}/${this.minDetections})`);
-            
             if (this.noteDetectionTimeout) {
                 clearTimeout(this.noteDetectionTimeout);
             }
@@ -948,7 +953,6 @@ class IntervalTrainerApp {
 
     evaluateAnswer() {
         if (!this.isWaitingForAnswer || this.detectedNotes.length < this.minDetections) {
-            console.log(`⚠️ Not enough (${this.detectedNotes.length}/${this.minDetections})`);
             return;
         }
         
@@ -959,8 +963,6 @@ class IntervalTrainerApp {
         const detectedNote = this.getMostCommonNote(this.detectedNotes);
         const normalizedDetected = this.normalizeNote(detectedNote);
         const normalizedTarget = this.normalizeNote(this.currentQuestion.targetNote);
-        
-        console.log(`🎯 Target: ${normalizedTarget}, Got: ${normalizedDetected}`);
         
         const isCorrect = normalizedDetected === normalizedTarget;
         
@@ -992,8 +994,6 @@ class IntervalTrainerApp {
                 mostCommon = note;
             }
         });
-        
-        console.log('📊', counts, '→', mostCommon);
         
         return mostCommon;
     }
@@ -1053,7 +1053,7 @@ class IntervalTrainerApp {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Scale Degree Trainer v2.0');
+    console.log('🚀 Scale Degree Trainer v2.1 - iPhone Optimized');
     window.app = new IntervalTrainerApp();
 });
     </script>
