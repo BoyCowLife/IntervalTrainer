@@ -54,14 +54,8 @@ body {
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 #setupScreen {
@@ -157,10 +151,6 @@ body {
     color: white;
 }
 
-.btn-secondary:hover {
-    background: #d32f2f;
-}
-
 #quizScreen {
     justify-content: space-between;
     height: 100vh;
@@ -244,6 +234,7 @@ body {
 
 .listening-indicator {
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 15px;
     font-size: 1.2rem;
@@ -263,14 +254,15 @@ body {
 }
 
 @keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(1.5);
-        opacity: 0.5;
-    }
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.5; }
+}
+
+#detectedNoteDisplay {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #4caf50;
+    min-height: 40px;
 }
 
 .feedback-area {
@@ -415,16 +407,6 @@ body {
         padding: 15px 25px;
     }
 }
-
-@supports (-webkit-touch-callout: none) {
-    body {
-        min-height: -webkit-fill-available;
-    }
-    
-    .container {
-        min-height: -webkit-fill-available;
-    }
-}
     </style>
 </head>
 <body>
@@ -454,9 +436,10 @@ body {
 
             <div class="info-box">
                 <h3>Come funziona:</h3>
-                <p>📍 L'app ti chiederà di suonare un grado della scala (es. "VI di La Maggiore")</p>
-                <p>🎸 Suona quella nota su qualsiasi ottava</p>
-                <p>✅ L'app riconosce la nota e ti dice se è corretta</p>
+                <p>📍 L'app ti chiede di suonare un grado della scala</p>
+                <p>🎸 Suona la nota FORTE e LUNGA (2-3 secondi)</p>
+                <p>✅ Vedrai la nota rilevata in verde</p>
+                <p>⏱️ Aspetta che valuti automaticamente</p>
             </div>
 
             <button id="startBtn" class="btn btn-primary">Inizia Sessione (30 Quiz)</button>
@@ -489,7 +472,8 @@ body {
                     <div id="listeningIndicator" class="listening-indicator hidden">
                         <div class="pulse"></div>
                         <span>In ascolto...</span>
-                        <div id="detectedNoteDisplay" style="margin-left: 20px; font-size: 1.5rem; font-weight: bold; color: #4caf50;"></div>
+                        <div id="detectedNoteDisplay"></div>
+                        <div id="noteCounter" style="font-size: 0.9rem; color: #a0a0a0;"></div>
                     </div>
                 </div>
 
@@ -537,61 +521,81 @@ body {
     </div>
 
     <script>
+// Enhanced Pitch Detector with YIN algorithm
 class PitchDetector {
     constructor() {
         this.audioContext = null;
         this.analyser = null;
         this.mediaStream = null;
-        this.bufferLength = 4096;
+        this.bufferLength = 8192;
         this.buffer = new Float32Array(this.bufferLength);
         this.isListening = false;
         this.onPitchDetected = null;
         this.noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
         this.A4 = 440;
         this.lastDetectedNote = null;
-        this.onVolumeChange = null;
+        this.consecutiveCount = 0;
+        this.isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     }
 
     async initialize() {
         try {
+            console.log('🎤 Requesting microphone... (Mobile:', this.isMobile + ')');
+            
             this.mediaStream = await navigator.mediaDevices.getUserMedia({ 
                 audio: {
                     echoCancellation: false,
                     noiseSuppression: false,
-                    autoGainControl: true
+                    autoGainControl: true,
+                    sampleRate: 48000
                 } 
             });
             
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            if (this.audioContext.state === 'suspended') {
+                await this.audioContext.resume();
+            }
+            
             this.analyser = this.audioContext.createAnalyser();
             this.analyser.fftSize = this.bufferLength * 2;
-            this.analyser.smoothingTimeConstant = 0.3;
+            this.analyser.smoothingTimeConstant = 0.2;
             
             const source = this.audioContext.createMediaStreamSource(this.mediaStream);
             source.connect(this.analyser);
             
             console.log('✅ Audio initialized');
+            console.log('Sample rate:', this.audioContext.sampleRate);
             return true;
         } catch (error) {
             console.error('❌ Error:', error);
+            alert('Errore microfono: ' + error.message);
             return false;
         }
     }
 
     startListening(callback) {
-        if (!this.analyser) return;
+        if (!this.analyser) {
+            console.error('Audio not initialized');
+            return;
+        }
+        
         this.isListening = true;
         this.onPitchDetected = callback;
+        this.lastDetectedNote = null;
+        this.consecutiveCount = 0;
         console.log('🎤 Listening...');
         this.detectPitch();
     }
 
     stopListening() {
         this.isListening = false;
+        console.log('🛑 Stopped');
     }
 
     detectPitch() {
         if (!this.isListening) return;
+        
         this.analyser.getFloatTimeDomainData(this.buffer);
         
         let sum = 0;
@@ -600,100 +604,91 @@ class PitchDetector {
         }
         const volume = Math.sqrt(sum / this.buffer.length);
         
-        if (this.onVolumeChange) {
-            this.onVolumeChange(volume);
-        }
-        
-        const pitch = this.autoCorrelate(this.buffer, this.audioContext.sampleRate);
+        const pitch = this.yinPitchDetection(this.buffer, this.audioContext.sampleRate);
         
         if (pitch && pitch > 20 && pitch < 4000) {
             const note = this.frequencyToNote(pitch);
             
-            if (!this.lastDetectedNote || this.lastDetectedNote !== note.note) {
-                console.log(`🎵 ${note.note} (${pitch.toFixed(2)} Hz)`);
-                this.lastDetectedNote = note.note;
+            if (note.note === this.lastDetectedNote) {
+                this.consecutiveCount++;
                 
-                if (this.onPitchDetected) {
-                    this.onPitchDetected(note);
+                if (this.consecutiveCount >= 2 && this.onPitchDetected) {
+                    this.onPitchDetected(note, volume);
                 }
+            } else {
+                this.lastDetectedNote = note.note;
+                this.consecutiveCount = 1;
             }
         }
 
         requestAnimationFrame(() => this.detectPitch());
     }
 
-    autoCorrelate(buffer, sampleRate) {
-        let size = buffer.length;
-        let maxSamples = Math.floor(size / 2);
-        let bestOffset = -1;
-        let bestCorrelation = 0;
-        let rms = 0;
+    yinPitchDetection(buffer, sampleRate) {
+        const threshold = 0.15;
+        const bufferSize = buffer.length;
         
-        for (let i = 0; i < size; i++) {
-            let val = buffer[i];
-            rms += val * val;
-        }
-        rms = Math.sqrt(rms / size);
+        const yinBuffer = new Float32Array(bufferSize / 2);
         
-        if (rms < 0.015) return -1;
-        
-        let correlations = [];
-        let lastCorrelation = 1;
-        
-        for (let offset = 1; offset < maxSamples; offset++) {
-            let correlation = 0;
-
-            for (let i = 0; i < maxSamples; i++) {
-                correlation += Math.abs(buffer[i] - buffer[i + offset]);
+        for (let tau = 0; tau < bufferSize / 2; tau++) {
+            let sum = 0;
+            for (let i = 0; i < bufferSize / 2; i++) {
+                const delta = buffer[i] - buffer[i + tau];
+                sum += delta * delta;
             }
-            
-            correlation = 1 - (correlation / maxSamples);
-            
-            if (correlation > 0.75 && correlation > lastCorrelation) {
-                correlations.push({ offset: offset, correlation: correlation });
-            }
-            
-            lastCorrelation = correlation;
+            yinBuffer[tau] = sum;
         }
         
-        if (correlations.length === 0) return -1;
+        yinBuffer[0] = 1;
+        let runningSum = 0;
         
-        correlations.sort((a, b) => b.correlation - a.correlation);
+        for (let tau = 1; tau < bufferSize / 2; tau++) {
+            runningSum += yinBuffer[tau];
+            yinBuffer[tau] *= tau / runningSum;
+        }
         
-        bestCorrelation = correlations[0].correlation;
-        bestOffset = correlations[0].offset;
+        let tauEstimate = -1;
+        let minTau = 1;
+        let minValue = 1;
         
-        if (bestCorrelation > 0.75 && bestOffset > 0) {
-            for (let i = 1; i < correlations.length && i < 3; i++) {
-                if (correlations[i].offset < bestOffset * 0.6) {
-                    if (correlations[i].correlation > bestCorrelation * 0.9) {
-                        bestOffset = correlations[i].offset;
-                        bestCorrelation = correlations[i].correlation;
-                        break;
-                    }
+        for (let tau = 2; tau < bufferSize / 2; tau++) {
+            if (yinBuffer[tau] < threshold) {
+                while (tau + 1 < bufferSize / 2 && yinBuffer[tau + 1] < yinBuffer[tau]) {
+                    tau++;
                 }
+                tauEstimate = tau;
+                break;
             }
             
-            if (bestOffset < maxSamples - 1 && bestOffset > 0) {
-                let y1 = buffer[bestOffset - 1];
-                let y2 = buffer[bestOffset];
-                let y3 = buffer[bestOffset + 1];
-                let shift = (y3 - y1) / (2 * (2 * y2 - y1 - y3));
-                
-                if (isFinite(shift) && Math.abs(shift) < 1) {
-                    return sampleRate / (bestOffset + shift);
-                }
+            if (yinBuffer[tau] < minValue) {
+                minValue = yinBuffer[tau];
+                minTau = tau;
             }
-            
-            return sampleRate / bestOffset;
         }
         
-        return -1;
+        if (tauEstimate === -1) {
+            if (minValue < 0.5) {
+                tauEstimate = minTau;
+            } else {
+                return null;
+            }
+        }
+        
+        let betterTau = tauEstimate;
+        if (tauEstimate > 0 && tauEstimate < bufferSize / 2 - 1) {
+            const s0 = yinBuffer[tauEstimate - 1];
+            const s1 = yinBuffer[tauEstimate];
+            const s2 = yinBuffer[tauEstimate + 1];
+            betterTau = tauEstimate + (s2 - s0) / (2 * (2 * s1 - s2 - s0));
+        }
+        
+        return sampleRate / betterTau;
     }
 
     frequencyToNote(frequency) {
         const noteNum = 12 * (Math.log(frequency / this.A4) / Math.log(2)) + 69;
         const roundedNoteNum = Math.round(noteNum);
+        const cents = Math.round((noteNum - roundedNoteNum) * 100);
         const noteName = this.noteNames[roundedNoteNum % 12];
         const octave = Math.floor(roundedNoteNum / 12) - 1;
         
@@ -701,6 +696,7 @@ class PitchDetector {
             frequency: frequency,
             note: noteName,
             octave: octave,
+            cents: cents,
             fullNote: `${noteName}${octave}`
         };
     }
@@ -717,6 +713,8 @@ class PitchDetector {
             this.audioContext.close();
             this.audioContext = null;
         }
+        
+        console.log('🔇 Stopped');
     }
 }
 
@@ -732,6 +730,7 @@ class IntervalTrainerApp {
         this.isWaitingForAnswer = false;
         this.detectedNotes = [];
         this.noteDetectionTimeout = null;
+        this.minDetections = 5;
         
         this.degrees = {
             'I': { index: 0, name: 'I (Tonica)' },
@@ -774,16 +773,6 @@ class IntervalTrainerApp {
         document.getElementById('restartBtn').addEventListener('click', () => this.reset());
         document.getElementById('requestMicBtn').addEventListener('click', () => this.requestMicrophone());
         
-        this.pitchDetector.onVolumeChange = (volume) => {
-            const indicator = document.getElementById('listeningIndicator');
-            if (indicator && !indicator.classList.contains('hidden')) {
-                const pulse = indicator.querySelector('.pulse');
-                if (pulse && volume > 0.01) {
-                    pulse.style.backgroundColor = volume > 0.05 ? '#4caf50' : '#4a90e2';
-                }
-            }
-        };
-        
         this.checkMicrophonePermission();
     }
 
@@ -802,8 +791,6 @@ class IntervalTrainerApp {
         if (initialized) {
             this.pitchDetector.stop();
             this.showScreen('setup');
-        } else {
-            alert('Impossibile accedere al microfono.');
         }
     }
 
@@ -906,33 +893,41 @@ class IntervalTrainerApp {
         
         document.getElementById('listeningIndicator').classList.remove('hidden');
         document.getElementById('detectedNoteDisplay').textContent = '';
+        document.getElementById('noteCounter').textContent = '';
         
-        this.pitchDetector.startListening((noteData) => {
+        this.pitchDetector.startListening((noteData, volume) => {
             if (!this.isWaitingForAnswer) return;
             
             const displayElement = document.getElementById('detectedNoteDisplay');
+            const counterElement = document.getElementById('noteCounter');
+            
             if (displayElement) {
                 displayElement.textContent = this.displayNote(noteData.note);
             }
             
             this.detectedNotes.push(noteData.note);
-            console.log(`📝 ${noteData.note} (${this.detectedNotes.length})`);
+            
+            if (counterElement) {
+                counterElement.textContent = `${this.detectedNotes.length}/${this.minDetections} rilevamenti`;
+            }
+            
+            console.log(`📝 ${noteData.note} (${this.detectedNotes.length}/${this.minDetections})`);
             
             if (this.noteDetectionTimeout) {
                 clearTimeout(this.noteDetectionTimeout);
             }
             
-            if (this.detectedNotes.length >= 3) {
+            if (this.detectedNotes.length >= this.minDetections) {
                 this.noteDetectionTimeout = setTimeout(() => {
                     this.evaluateAnswer();
-                }, 1000);
+                }, 1200);
             }
         });
     }
 
     evaluateAnswer() {
-        if (!this.isWaitingForAnswer || this.detectedNotes.length < 3) {
-            console.log(`⚠️ Not enough (${this.detectedNotes.length}/3)`);
+        if (!this.isWaitingForAnswer || this.detectedNotes.length < this.minDetections) {
+            console.log(`⚠️ Not enough (${this.detectedNotes.length}/${this.minDetections})`);
             return;
         }
         
@@ -1037,7 +1032,7 @@ class IntervalTrainerApp {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 App loaded');
+    console.log('🚀 Scale Degree Trainer v2.0');
     window.app = new IntervalTrainerApp();
 });
     </script>
