@@ -265,6 +265,23 @@ body {
     min-height: 40px;
 }
 
+.detection-progress {
+    width: 200px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.detection-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4a90e2, #4caf50);
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 10px;
+}
+
 .feedback-area {
     text-align: center;
     padding: 40px;
@@ -439,7 +456,7 @@ body {
                 <p>📍 L'app ti chiede di suonare un grado della scala</p>
                 <p>🎸 Suona la nota FORTE e LUNGA (2-3 secondi)</p>
                 <p>✅ Vedrai la nota rilevata in verde</p>
-                <p>⏱️ Aspetta che valuti automaticamente</p>
+                <p>📊 La barra si riempie fino alla valutazione</p>
             </div>
 
             <button id="startBtn" class="btn btn-primary">Inizia Sessione (30 Quiz)</button>
@@ -473,7 +490,9 @@ body {
                         <div class="pulse"></div>
                         <span>In ascolto...</span>
                         <div id="detectedNoteDisplay"></div>
-                        <div id="noteCounter" style="font-size: 0.9rem; color: #a0a0a0;"></div>
+                        <div class="detection-progress">
+                            <div id="detectionBar" class="detection-bar"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -893,13 +912,13 @@ class IntervalTrainerApp {
         
         document.getElementById('listeningIndicator').classList.remove('hidden');
         document.getElementById('detectedNoteDisplay').textContent = '';
-        document.getElementById('noteCounter').textContent = '';
+        document.getElementById('detectionBar').style.width = '0%';
         
         this.pitchDetector.startListening((noteData, volume) => {
             if (!this.isWaitingForAnswer) return;
             
             const displayElement = document.getElementById('detectedNoteDisplay');
-            const counterElement = document.getElementById('noteCounter');
+            const barElement = document.getElementById('detectionBar');
             
             if (displayElement) {
                 displayElement.textContent = this.displayNote(noteData.note);
@@ -907,8 +926,10 @@ class IntervalTrainerApp {
             
             this.detectedNotes.push(noteData.note);
             
-            if (counterElement) {
-                counterElement.textContent = `${this.detectedNotes.length}/${this.minDetections} rilevamenti`;
+            // Update progress bar
+            if (barElement) {
+                const progress = Math.min((this.detectedNotes.length / this.minDetections) * 100, 100);
+                barElement.style.width = progress + '%';
             }
             
             console.log(`📝 ${noteData.note} (${this.detectedNotes.length}/${this.minDetections})`);
