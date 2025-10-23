@@ -454,10 +454,9 @@ body {
             <div class="info-box">
                 <h3>Come funziona:</h3>
                 <p>📍 L'app ti chiede di suonare un grado della scala</p>
-                <p>🎸 Suona la nota FORTE e LUNGA (3-4 secondi)</p>
+                <p>🎸 Suona la nota FORTE e LUNGA (2-3 secondi)</p>
                 <p>✅ Vedrai la nota rilevata in verde</p>
-                <p>📊 La barra si riempie fino alla valutazione</p>
-                <p>📱 Su iPhone: tieni la nota più a lungo!</p>
+                <p>📊 La barra si riempie e valuta subito</p>
             </div>
 
             <button id="startBtn" class="btn btn-primary">Inizia Sessione (30 Quiz)</button>
@@ -944,9 +943,8 @@ class IntervalTrainerApp {
             }
             
             if (this.detectedNotes.length >= this.minDetections) {
-                this.noteDetectionTimeout = setTimeout(() => {
-                    this.evaluateAnswer();
-                }, 1200);
+                // Evaluate immediately when threshold reached
+                this.evaluateAnswer();
             }
         });
     }
@@ -1053,7 +1051,7 @@ class IntervalTrainerApp {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Scale Degree Trainer v2.1 - iPhone Optimized');
+    console.log('🚀 Scale Degree Trainer v2.2 - Instant Evaluation');
     window.app = new IntervalTrainerApp();
 });
     </script>
