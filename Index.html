@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -6,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1a1a2e">
-    <title>Scale Degree Trainer - Piano</title>
+    <title>Scale Degree Trainer - Piano v4.1</title>
     <style>
 * {
     margin: 0;
@@ -443,7 +444,7 @@ body {
         <div id="permissionScreen" class="screen">
             <div class="permission-icon">🎤</div>
             <h1>Accesso al Microfono</h1>
-            <p>Questa app ha bisogno del microfono per rilevare le note che suoni al pianoforte.</p>
+            <p>Questa app ha bisogno del microfono per rilevare le note che suoni sulla chitarra.</p>
             <button id="requestMicBtn" class="btn btn-primary">Consenti Accesso</button>
         </div>
 
@@ -880,6 +881,7 @@ class IntervalTrainerApp {
         this.wrongAnswers = 0;
         this.selectedScale = null;
         this.currentQuestion = null;
+        this.lastDegreeKey = null; // Traccia l'ultimo grado chiesto
         this.isWaitingForAnswer = false;
         this.detectedNotes = [];
         this.noteDetectionTimeout = null;
@@ -1000,6 +1002,7 @@ class IntervalTrainerApp {
         this.currentQuiz = 0;
         this.correctAnswers = 0;
         this.wrongAnswers = 0;
+        this.lastDegreeKey = null; // Reset per nuova sessione
 
         document.getElementById('currentScale').textContent = this.scales[this.selectedScale].display + ' Maggiore';
         
@@ -1033,9 +1036,21 @@ class IntervalTrainerApp {
 
     generateQuestion() {
         const scale = this.scales[this.selectedScale];
-        const degreeIndex = Math.floor(Math.random() * 7);
         const degreeKeys = Object.keys(this.degrees);
-        const degreeKey = degreeKeys[degreeIndex];
+        
+        // Filtra il grado precedente per evitare ripetizioni
+        let availableDegrees = degreeKeys;
+        if (this.lastDegreeKey !== null) {
+            availableDegrees = degreeKeys.filter(key => key !== this.lastDegreeKey);
+        }
+        
+        // Scegli un grado casuale tra quelli disponibili
+        const randomIndex = Math.floor(Math.random() * availableDegrees.length);
+        const degreeKey = availableDegrees[randomIndex];
+        
+        // Salva il grado corrente per la prossima volta
+        this.lastDegreeKey = degreeKey;
+        
         const degree = this.degrees[degreeKey];
         const targetNote = scale.notes[degree.index];
         
@@ -1200,17 +1215,19 @@ class IntervalTrainerApp {
         this.currentQuiz = 0;
         this.correctAnswers = 0;
         this.wrongAnswers = 0;
+        this.lastDegreeKey = null; // Reset per nuova sessione
         this.showScreen('setup');
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 App loaded - Version 4.0 PIANO OPTIMIZED');
+    console.log('🚀 App loaded - Version 4.1 PIANO OPTIMIZED with NO REPEATS');
     console.log('🎹 Optimized for piano/keyboard detection');
     console.log('📊 Settings: Volume = 0.18, RMS = 0.18, Correlation = 0.88, Stability = 3');
     console.log('⏱️  Cooldown = 600ms, Silence gate = 3 frames, Spike = 2.2x');
     console.log('🎼 Frequency range: 25-4500 Hz (A0 to C8)');
     console.log('🔇 Silence threshold = 0.06 (lower for piano sustain)');
+    console.log('🔄 No consecutive degree repeats');
     window.app = new IntervalTrainerApp();
 });
     </script>
