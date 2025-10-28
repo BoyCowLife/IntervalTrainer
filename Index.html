@@ -506,6 +506,9 @@ body {
                         <span>Ascolto...</span>
                     </div>
                     <div id="detectedNoteDisplay" class="detected-note-display"></div>
+                    <div id="volumeDebug" style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 10px; display: none;">
+                        Volume: <span id="volumeValue">0.000</span> / 0.250 (min)
+                    </div>
                 </div>
 
                 <div id="feedbackArea" class="feedback-area hidden">
@@ -567,16 +570,24 @@ class PitchDetector {
         this.A4 = 440;
         this.noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
         
-        // SOGLIE AUMENTATE DRASTICAMENTE
+        // SOGLIE AUMENTATE AL MASSIMO
         this.currentVolume = 0;
-        this.volumeThreshold = 0.15; // Aumentato a 0.15 (molto più alto)
+        this.volumeThreshold = 0.25; // AUMENTATO DRASTICAMENTE a 0.25
         
-        // GATE per stabilità segnale
+        // GATE per stabilità segnale - AUMENTATO
         this.noteStabilityBuffer = [];
-        this.requiredStableDetections = 2; // Richiede 2 rilevamenti consecutivi della stessa nota
+        this.requiredStableDetections = 3; // AUMENTATO a 3 rilevamenti consecutivi
         
         // Flag per evitare auto-start
         this.isInitialized = false;
+        
+        // WARM-UP: ignora i primi secondi di ascolto
+        this.warmupStartTime = null;
+        this.warmupDuration = 500; // 500ms di warm-up
+        
+        // Tracciamento volume massimo per calibrazione dinamica
+        this.volumeHistory = [];
+        this.maxVolumeHistory = 20;
     }
 
     async initialize() {
@@ -614,7 +625,9 @@ class PitchDetector {
         this.isListening = true;
         this.lastDetectedNote = null;
         this.noteStabilityBuffer = []; // Reset del buffer di stabilità
-        console.log('👂 Started listening');
+        this.volumeHistory = []; // Reset dello storico volume
+        this.warmupStartTime = Date.now(); // Inizia warm-up
+        console.log('👂 Started listening (warming up for 500ms...)');
         this.detectPitch();
     }
 
@@ -623,6 +636,8 @@ class PitchDetector {
         this.onPitchDetected = null;
         this.noteStabilityBuffer = [];
         this.lastDetectedNote = null;
+        this.volumeHistory = [];
+        this.warmupStartTime = null;
         console.log('🛑 Stopped listening');
     }
 
@@ -630,6 +645,13 @@ class PitchDetector {
         // CONTROLLO FONDAMENTALE: se non stiamo ascoltando, NON fare nulla
         if (!this.isListening || !this.analyser || !this.isInitialized) {
             return; // NON continuare il loop se non stiamo ascoltando
+        }
+        
+        // WARM-UP: ignora i primi 500ms
+        const timeSinceStart = Date.now() - this.warmupStartTime;
+        if (timeSinceStart < this.warmupDuration) {
+            requestAnimationFrame(() => this.detectPitch());
+            return;
         }
         
         this.analyser.getFloatTimeDomainData(this.buffer);
@@ -641,14 +663,26 @@ class PitchDetector {
         const volume = Math.sqrt(sum / this.buffer.length);
         this.currentVolume = volume;
         
+        // Traccia lo storico del volume
+        this.volumeHistory.push(volume);
+        if (this.volumeHistory.length > this.maxVolumeHistory) {
+            this.volumeHistory.shift();
+        }
+        
+        // Calcola la media del volume recente
+        const avgVolume = this.volumeHistory.reduce((a, b) => a + b, 0) / this.volumeHistory.length;
+        
         if (this.onVolumeChange) {
             this.onVolumeChange(volume);
         }
         
-        // CONTROLLO VOLUME PRIMA DI RILEVARE NOTE
-        // Se il volume è troppo basso, ignora completamente il rilevamento
-        if (volume < this.volumeThreshold) {
-            // Pulisci il buffer se il volume è troppo basso
+        // CONTROLLO VOLUME PRIMA DI RILEVARE NOTE - DOPPIA SOGLIA
+        // 1. Il volume corrente deve superare la soglia
+        // 2. Il volume corrente deve essere significativamente più alto della media
+        const volumeSpike = volume > (avgVolume * 2.5); // Picco significativo
+        
+        if (volume < this.volumeThreshold || !volumeSpike) {
+            // Pulisci il buffer se il volume è troppo basso o non c'è picco
             this.noteStabilityBuffer = [];
             requestAnimationFrame(() => this.detectPitch());
             return;
@@ -672,7 +706,7 @@ class PitchDetector {
                 const allSame = this.noteStabilityBuffer.every(n => n === this.noteStabilityBuffer[0]);
                 
                 if (allSame && (!this.lastDetectedNote || this.lastDetectedNote !== note.note)) {
-                    console.log(`🎵 ${note.note} (${pitch.toFixed(2)} Hz, vol: ${volume.toFixed(3)})`);
+                    console.log(`🎵 ${note.note} (${pitch.toFixed(2)} Hz, vol: ${volume.toFixed(3)}, avg: ${avgVolume.toFixed(3)})`);
                     this.lastDetectedNote = note.note;
                     
                     if (this.onPitchDetected) {
@@ -701,8 +735,8 @@ class PitchDetector {
         }
         rms = Math.sqrt(rms / size);
         
-        // SOGLIA RMS AUMENTATA DRASTICAMENTE - da 0.015 a 0.15 per ignorare completamente il rumore di fondo
-        if (rms < 0.15) return -1;
+        // SOGLIA RMS MASSIMA - 0.25 per ignorare TUTTO il rumore di fondo
+        if (rms < 0.25) return -1;
         
         let correlations = [];
         let lastCorrelation = 1;
@@ -716,8 +750,8 @@ class PitchDetector {
             
             correlation = 1 - (correlation / maxSamples);
             
-            // SOGLIA CORRELAZIONE AUMENTATA - da 0.75 a 0.85 per maggiore precisione
-            if (correlation > 0.85 && correlation > lastCorrelation) {
+            // SOGLIA CORRELAZIONE MASSIMA - da 0.85 a 0.90 per massima precisione
+            if (correlation > 0.90 && correlation > lastCorrelation) {
                 correlations.push({ offset: offset, correlation: correlation });
             }
             
@@ -731,8 +765,8 @@ class PitchDetector {
         bestCorrelation = correlations[0].correlation;
         bestOffset = correlations[0].offset;
         
-        // SOGLIA CORRELAZIONE AUMENTATA anche qui
-        if (bestCorrelation > 0.85 && bestOffset > 0) {
+        // SOGLIA CORRELAZIONE MASSIMA anche qui - 0.90
+        if (bestCorrelation > 0.90 && bestOffset > 0) {
             for (let i = 1; i < correlations.length && i < 3; i++) {
                 if (correlations[i].offset < bestOffset * 0.6) {
                     if (correlations[i].correlation > bestCorrelation * 0.9) {
@@ -855,11 +889,25 @@ class IntervalTrainerApp {
             const indicator = document.getElementById('listeningIndicator');
             if (indicator && !indicator.classList.contains('hidden')) {
                 const pulse = indicator.querySelector('.pulse');
-                // SOGLIA VISUALE AUMENTATA per indicatore - ora riflette la nuova soglia
-                if (pulse && volume > 0.1) {
-                    pulse.style.backgroundColor = volume > 0.2 ? '#4caf50' : '#4a90e2';
-                } else if (pulse) {
-                    pulse.style.backgroundColor = '#7b68ee'; // Colore quando sotto soglia
+                // SOGLIA VISUALE AGGIORNATA per le nuove soglie massime
+                if (pulse) {
+                    if (volume > 0.3) {
+                        pulse.style.backgroundColor = '#4caf50'; // Verde: ottimo
+                    } else if (volume > 0.2) {
+                        pulse.style.backgroundColor = '#4a90e2'; // Blu: buono
+                    } else if (volume > 0.1) {
+                        pulse.style.backgroundColor = '#ff9800'; // Arancione: debole
+                    } else {
+                        pulse.style.backgroundColor = '#7b68ee'; // Viola: troppo debole
+                    }
+                }
+                
+                // Mostra il volume per debug (commenta per nascondere)
+                const volumeDebug = document.getElementById('volumeDebug');
+                const volumeValue = document.getElementById('volumeValue');
+                if (volumeDebug && volumeValue) {
+                    // volumeDebug.style.display = 'block'; // Decommenta per vedere il volume
+                    volumeValue.textContent = volume.toFixed(3);
                 }
             }
         };
@@ -1117,8 +1165,9 @@ class IntervalTrainerApp {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 App loaded - Version 2.0 with STRICT noise filtering and stability gate');
-    console.log('📊 Settings: Volume threshold = 0.15, RMS threshold = 0.15, Stability gate = 2');
+    console.log('🚀 App loaded - Version 3.0 ULTRA STRICT with spike detection');
+    console.log('📊 Settings: Volume = 0.25, RMS = 0.25, Correlation = 0.90, Stability = 3, Warm-up = 500ms');
+    console.log('🎯 Spike detection: volume must be 2.5x higher than average');
     window.app = new IntervalTrainerApp();
 });
     </script>
