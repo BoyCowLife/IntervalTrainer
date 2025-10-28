@@ -477,6 +477,7 @@ body {
                 <p>✓ L'app riconoscerà automaticamente la nota</p>
                 <p>🎯 Allena il tuo orecchio sui 7 gradi della scala!</p>
                 <p><strong>💡 Importante:</strong> Suona in modo chiaro e con volume adeguato per un rilevamento accurato</p>
+                <p><strong>⏸️ Pausa tra le note:</strong> Attendi un breve silenzio tra una nota e l'altra per evitare rilevamenti spuri</p>
             </div>
 
             <button id="startBtn" class="btn btn-primary">Inizia Allenamento</button>
@@ -588,6 +589,15 @@ class PitchDetector {
         // Tracciamento volume massimo per calibrazione dinamica
         this.volumeHistory = [];
         this.maxVolumeHistory = 20;
+        
+        // COOLDOWN: tempo minimo tra due note rilevate
+        this.lastNoteTime = 0;
+        this.cooldownPeriod = 800; // 800ms di cooldown tra note
+        
+        // SILENCE GATE: richiede un periodo di silenzio tra le note
+        this.silenceFramesRequired = 5; // 5 frame consecutivi sotto soglia
+        this.currentSilenceFrames = 0;
+        this.readyForNextNote = true;
     }
 
     async initialize() {
@@ -627,6 +637,9 @@ class PitchDetector {
         this.noteStabilityBuffer = []; // Reset del buffer di stabilità
         this.volumeHistory = []; // Reset dello storico volume
         this.warmupStartTime = Date.now(); // Inizia warm-up
+        this.lastNoteTime = 0; // Reset cooldown
+        this.currentSilenceFrames = 0; // Reset silence gate
+        this.readyForNextNote = true; // Pronto per la prima nota
         console.log('👂 Started listening (warming up for 500ms...)');
         this.detectPitch();
     }
@@ -638,6 +651,9 @@ class PitchDetector {
         this.lastDetectedNote = null;
         this.volumeHistory = [];
         this.warmupStartTime = null;
+        this.lastNoteTime = 0;
+        this.currentSilenceFrames = 0;
+        this.readyForNextNote = true;
         console.log('🛑 Stopped listening');
     }
 
@@ -676,13 +692,30 @@ class PitchDetector {
             this.onVolumeChange(volume);
         }
         
+        // SILENCE GATE: traccia periodi di silenzio
+        const silenceThreshold = 0.08; // Soglia più bassa per rilevare "silenzio"
+        if (volume < silenceThreshold) {
+            this.currentSilenceFrames++;
+            if (this.currentSilenceFrames >= this.silenceFramesRequired) {
+                this.readyForNextNote = true; // Reset dopo silenzio
+            }
+        } else {
+            this.currentSilenceFrames = 0;
+        }
+        
+        // COOLDOWN: controlla se è passato abbastanza tempo dall'ultima nota
+        const timeSinceLastNote = Date.now() - this.lastNoteTime;
+        const inCooldown = timeSinceLastNote < this.cooldownPeriod;
+        
         // CONTROLLO VOLUME PRIMA DI RILEVARE NOTE - DOPPIA SOGLIA
         // 1. Il volume corrente deve superare la soglia
         // 2. Il volume corrente deve essere significativamente più alto della media
+        // 3. Deve essere pronto per la prossima nota (dopo silenzio)
+        // 4. Non deve essere in cooldown
         const volumeSpike = volume > (avgVolume * 2.5); // Picco significativo
         
-        if (volume < this.volumeThreshold || !volumeSpike) {
-            // Pulisci il buffer se il volume è troppo basso o non c'è picco
+        if (volume < this.volumeThreshold || !volumeSpike || inCooldown || !this.readyForNextNote) {
+            // Pulisci il buffer se non sono soddisfatte le condizioni
             this.noteStabilityBuffer = [];
             requestAnimationFrame(() => this.detectPitch());
             return;
@@ -706,8 +739,10 @@ class PitchDetector {
                 const allSame = this.noteStabilityBuffer.every(n => n === this.noteStabilityBuffer[0]);
                 
                 if (allSame && (!this.lastDetectedNote || this.lastDetectedNote !== note.note)) {
-                    console.log(`🎵 ${note.note} (${pitch.toFixed(2)} Hz, vol: ${volume.toFixed(3)}, avg: ${avgVolume.toFixed(3)})`);
+                    console.log(`🎵 ${note.note} (${pitch.toFixed(2)} Hz, vol: ${volume.toFixed(3)}, avg: ${avgVolume.toFixed(3)}, cooldown: ${timeSinceLastNote}ms)`);
                     this.lastDetectedNote = note.note;
+                    this.lastNoteTime = Date.now(); // Inizia cooldown
+                    this.readyForNextNote = false; // Richiede silenzio prima della prossima
                     
                     if (this.onPitchDetected) {
                         this.onPitchDetected(note);
@@ -1165,9 +1200,11 @@ class IntervalTrainerApp {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 App loaded - Version 3.0 ULTRA STRICT with spike detection');
-    console.log('📊 Settings: Volume = 0.25, RMS = 0.25, Correlation = 0.90, Stability = 3, Warm-up = 500ms');
+    console.log('🚀 App loaded - Version 3.1 with COOLDOWN & SILENCE GATE');
+    console.log('📊 Settings: Volume = 0.25, RMS = 0.25, Correlation = 0.90, Stability = 3');
+    console.log('⏱️  Cooldown = 800ms, Silence gate = 5 frames');
     console.log('🎯 Spike detection: volume must be 2.5x higher than average');
+    console.log('🔇 Silence required between notes to prevent false detections');
     window.app = new IntervalTrainerApp();
 });
     </script>
