@@ -476,6 +476,7 @@ body {
                 <p>🎸 Suona la nota corrispondente sulla chitarra</p>
                 <p>✓ L'app riconoscerà automaticamente la nota</p>
                 <p>🎯 Allena il tuo orecchio sui 7 gradi della scala!</p>
+                <p><strong>💡 Importante:</strong> Suona in modo chiaro e con volume adeguato per un rilevamento accurato</p>
             </div>
 
             <button id="startBtn" class="btn btn-primary">Inizia Allenamento</button>
@@ -566,9 +567,16 @@ class PitchDetector {
         this.A4 = 440;
         this.noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
         
-        // SOGLIA VOLUME AUMENTATA - più sensibile al volume effettivo
+        // SOGLIE AUMENTATE DRASTICAMENTE
         this.currentVolume = 0;
-        this.volumeThreshold = 0.08; // Aumentato da 0.01 a 0.08
+        this.volumeThreshold = 0.15; // Aumentato a 0.15 (molto più alto)
+        
+        // GATE per stabilità segnale
+        this.noteStabilityBuffer = [];
+        this.requiredStableDetections = 2; // Richiede 2 rilevamenti consecutivi della stessa nota
+        
+        // Flag per evitare auto-start
+        this.isInitialized = false;
     }
 
     async initialize() {
@@ -590,7 +598,10 @@ class PitchDetector {
             
             this.microphone.connect(this.analyser);
             
-            console.log('🎤 Microphone initialized');
+            this.isInitialized = true;
+            this.isListening = false; // IMPORTANTE: NON inizia automaticamente
+            
+            console.log('🎤 Microphone initialized - NOT listening yet');
             return true;
         } catch (error) {
             console.error('❌ Microphone error:', error);
@@ -602,6 +613,7 @@ class PitchDetector {
         this.onPitchDetected = callback;
         this.isListening = true;
         this.lastDetectedNote = null;
+        this.noteStabilityBuffer = []; // Reset del buffer di stabilità
         console.log('👂 Started listening');
         this.detectPitch();
     }
@@ -609,11 +621,16 @@ class PitchDetector {
     stopListening() {
         this.isListening = false;
         this.onPitchDetected = null;
+        this.noteStabilityBuffer = [];
+        this.lastDetectedNote = null;
         console.log('🛑 Stopped listening');
     }
 
     detectPitch() {
-        if (!this.isListening || !this.analyser) return;
+        // CONTROLLO FONDAMENTALE: se non stiamo ascoltando, NON fare nulla
+        if (!this.isListening || !this.analyser || !this.isInitialized) {
+            return; // NON continuare il loop se non stiamo ascoltando
+        }
         
         this.analyser.getFloatTimeDomainData(this.buffer);
         
@@ -631,6 +648,8 @@ class PitchDetector {
         // CONTROLLO VOLUME PRIMA DI RILEVARE NOTE
         // Se il volume è troppo basso, ignora completamente il rilevamento
         if (volume < this.volumeThreshold) {
+            // Pulisci il buffer se il volume è troppo basso
+            this.noteStabilityBuffer = [];
             requestAnimationFrame(() => this.detectPitch());
             return;
         }
@@ -640,14 +659,30 @@ class PitchDetector {
         if (pitch && pitch > 20 && pitch < 4000) {
             const note = this.frequencyToNote(pitch);
             
-            if (!this.lastDetectedNote || this.lastDetectedNote !== note.note) {
-                console.log(`🎵 ${note.note} (${pitch.toFixed(2)} Hz, vol: ${volume.toFixed(3)})`);
-                this.lastDetectedNote = note.note;
+            // GATE DI STABILITÀ: aggiungi al buffer
+            this.noteStabilityBuffer.push(note.note);
+            
+            // Mantieni solo le ultime N rilevazioni
+            if (this.noteStabilityBuffer.length > this.requiredStableDetections) {
+                this.noteStabilityBuffer.shift();
+            }
+            
+            // Controlla se abbiamo abbastanza rilevazioni stabili della stessa nota
+            if (this.noteStabilityBuffer.length >= this.requiredStableDetections) {
+                const allSame = this.noteStabilityBuffer.every(n => n === this.noteStabilityBuffer[0]);
                 
-                if (this.onPitchDetected) {
-                    this.onPitchDetected(note);
+                if (allSame && (!this.lastDetectedNote || this.lastDetectedNote !== note.note)) {
+                    console.log(`🎵 ${note.note} (${pitch.toFixed(2)} Hz, vol: ${volume.toFixed(3)})`);
+                    this.lastDetectedNote = note.note;
+                    
+                    if (this.onPitchDetected) {
+                        this.onPitchDetected(note);
+                    }
                 }
             }
+        } else {
+            // Se non c'è pitch valido, pulisci il buffer
+            this.noteStabilityBuffer = [];
         }
 
         requestAnimationFrame(() => this.detectPitch());
@@ -666,8 +701,8 @@ class PitchDetector {
         }
         rms = Math.sqrt(rms / size);
         
-        // SOGLIA RMS AUMENTATA - da 0.015 a 0.08 per ignorare rumore di fondo
-        if (rms < 0.08) return -1;
+        // SOGLIA RMS AUMENTATA DRASTICAMENTE - da 0.015 a 0.15 per ignorare completamente il rumore di fondo
+        if (rms < 0.15) return -1;
         
         let correlations = [];
         let lastCorrelation = 1;
@@ -741,6 +776,9 @@ class PitchDetector {
 
     stop() {
         this.isListening = false;
+        this.isInitialized = false;
+        this.noteStabilityBuffer = [];
+        this.lastDetectedNote = null;
         
         if (this.mediaStream) {
             this.mediaStream.getTracks().forEach(track => track.stop());
@@ -751,6 +789,11 @@ class PitchDetector {
             this.audioContext.close();
             this.audioContext = null;
         }
+        
+        this.analyser = null;
+        this.microphone = null;
+        
+        console.log('🔇 Audio system completely stopped');
     }
 }
 
@@ -812,9 +855,11 @@ class IntervalTrainerApp {
             const indicator = document.getElementById('listeningIndicator');
             if (indicator && !indicator.classList.contains('hidden')) {
                 const pulse = indicator.querySelector('.pulse');
-                // SOGLIA VISUALE AUMENTATA per indicatore
-                if (pulse && volume > 0.05) {
-                    pulse.style.backgroundColor = volume > 0.15 ? '#4caf50' : '#4a90e2';
+                // SOGLIA VISUALE AUMENTATA per indicatore - ora riflette la nuova soglia
+                if (pulse && volume > 0.1) {
+                    pulse.style.backgroundColor = volume > 0.2 ? '#4caf50' : '#4a90e2';
+                } else if (pulse) {
+                    pulse.style.backgroundColor = '#7b68ee'; // Colore quando sotto soglia
                 }
             }
         };
@@ -1072,7 +1117,8 @@ class IntervalTrainerApp {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 App loaded - Version with improved noise filtering');
+    console.log('🚀 App loaded - Version 2.0 with STRICT noise filtering and stability gate');
+    console.log('📊 Settings: Volume threshold = 0.15, RMS threshold = 0.15, Stability gate = 2');
     window.app = new IntervalTrainerApp();
 });
     </script>
