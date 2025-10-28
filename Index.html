@@ -294,51 +294,62 @@ body {
     border: 2px solid var(--error-color);
 }
 
-#feedbackIcon {
+.feedback-icon {
     font-size: 4rem;
     margin-bottom: 20px;
 }
 
-#feedbackText {
-    font-size: 1.5rem;
-    font-weight: 600;
-}
-
-.feedback-detail {
-    margin-top: 15px;
-    font-size: 1.2rem;
-    color: var(--text-secondary);
-}
-
-.score-area {
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    margin: 30px 0;
-}
-
-.score-item {
-    text-align: center;
-}
-
-.score-label {
-    display: block;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
-}
-
-.score-value {
-    display: block;
-    font-size: 2.5rem;
-    font-weight: bold;
-}
-
-.score-value.correct {
+.feedback-area.correct .feedback-icon {
     color: var(--success-color);
 }
 
-.score-value.wrong {
+.feedback-area.wrong .feedback-icon {
+    color: var(--error-color);
+}
+
+.feedback-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.feedback-detail {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-top: 10px;
+}
+
+.detected-note-display {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-top: 20px;
+    min-height: 40px;
+}
+
+.bottom-controls {
+    padding: 20px 0;
+}
+
+.score-display {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+}
+
+.score-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.score-item.correct {
+    color: var(--success-color);
+}
+
+.score-item.wrong {
     color: var(--error-color);
 }
 
@@ -353,113 +364,121 @@ body {
     margin-bottom: 40px;
 }
 
-.results-summary {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    width: 100%;
-    max-width: 400px;
-    margin-bottom: 40px;
-}
-
-.result-card {
+.results-stats {
     background: var(--bg-card);
-    padding: 30px;
     border-radius: 16px;
-    border: 2px solid var(--primary-color);
+    padding: 40px;
+    margin-bottom: 30px;
+    max-width: 400px;
 }
 
-.result-number {
-    font-size: 3rem;
-    font-weight: bold;
-    color: var(--primary-color);
-    margin-bottom: 10px;
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 1.2rem;
 }
 
-.result-label {
-    font-size: 1.1rem;
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
     color: var(--text-secondary);
+}
+
+.stat-value {
+    font-weight: bold;
+}
+
+.stat-value.accuracy {
+    font-size: 2rem;
+    color: var(--primary-color);
 }
 
 #permissionScreen {
     justify-content: center;
     align-items: center;
     text-align: center;
-    padding: 40px 20px;
 }
 
-#permissionScreen h2 {
+#permissionScreen h1 {
     font-size: 2rem;
     margin-bottom: 20px;
 }
 
 #permissionScreen p {
-    font-size: 1.1rem;
     color: var(--text-secondary);
-    margin-bottom: 40px;
+    margin-bottom: 30px;
+    line-height: 1.6;
     max-width: 400px;
 }
 
-@media (max-width: 480px) {
-    .interval-display {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .arrow {
-        transform: rotate(90deg);
-    }
-    
-    .base-note, .target-interval {
-        font-size: 1.5rem;
-        padding: 15px 25px;
-    }
+.permission-icon {
+    font-size: 4rem;
+    margin-bottom: 30px;
 }
 
-@supports (-webkit-touch-callout: none) {
-    body {
-        min-height: -webkit-fill-available;
+@media (max-width: 768px) {
+    #setupScreen h1,
+    #resultsScreen h1 {
+        font-size: 2rem;
     }
     
-    .container {
-        min-height: -webkit-fill-available;
+    .target-interval {
+        font-size: 2rem;
+        padding: 15px 25px;
+    }
+    
+    .base-note {
+        font-size: 1.5rem;
+        padding: 15px 20px;
     }
 }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="setupScreen" class="screen active">
+        <div id="permissionScreen" class="screen">
+            <div class="permission-icon">🎤</div>
+            <h1>Accesso al Microfono</h1>
+            <p>Questa app ha bisogno del microfono per rilevare le note che suoni sulla chitarra.</p>
+            <button id="requestMicBtn" class="btn btn-primary">Consenti Accesso</button>
+        </div>
+
+        <div id="setupScreen" class="screen">
             <h1>🎸 Scale Degree Trainer</h1>
-            <p class="subtitle">Impara i gradi delle scale maggiori</p>
+            <p class="subtitle">Allena il tuo orecchio sui gradi delle scale</p>
             
             <div class="setup-section">
-                <label for="scaleSelect">Seleziona Scala</label>
+                <label for="scaleSelect">Scegli la tonalità:</label>
                 <select id="scaleSelect">
-                    <option value="random">🎲 Scala Casuale</option>
-                    <option value="C">Do (C) Maggiore</option>
-                    <option value="G">Sol (G) Maggiore</option>
-                    <option value="D">Re (D) Maggiore</option>
-                    <option value="A">La (A) Maggiore</option>
-                    <option value="E">Mi (E) Maggiore</option>
-                    <option value="B">Si (B) Maggiore</option>
-                    <option value="F#">Fa# (F#) Maggiore</option>
-                    <option value="Db">Reb (Db) Maggiore</option>
-                    <option value="Ab">Lab (Ab) Maggiore</option>
-                    <option value="Eb">Mib (Eb) Maggiore</option>
-                    <option value="Bb">Sib (Bb) Maggiore</option>
-                    <option value="F">Fa (F) Maggiore</option>
+                    <option value="random">Casuale</option>
+                    <option value="C">Do Maggiore</option>
+                    <option value="G">Sol Maggiore</option>
+                    <option value="D">Re Maggiore</option>
+                    <option value="A">La Maggiore</option>
+                    <option value="E">Mi Maggiore</option>
+                    <option value="B">Si Maggiore</option>
+                    <option value="F#">Fa# Maggiore</option>
+                    <option value="Db">Reb Maggiore</option>
+                    <option value="Ab">Lab Maggiore</option>
+                    <option value="Eb">Mib Maggiore</option>
+                    <option value="Bb">Sib Maggiore</option>
+                    <option value="F">Fa Maggiore</option>
                 </select>
             </div>
 
             <div class="info-box">
-                <h3>Come funziona:</h3>
-                <p>📍 L'app ti chiederà di suonare un grado della scala (es. "VI di La Maggiore")</p>
-                <p>🎸 Suona quella nota su qualsiasi ottava</p>
-                <p>✅ L'app riconosce la nota e ti dice se è corretta</p>
+                <h3>Come funziona</h3>
+                <p>📝 Ti verrà mostrato un grado della scala (es. "3a Maggiore")</p>
+                <p>🎸 Suona la nota corrispondente sulla chitarra</p>
+                <p>✓ L'app riconoscerà automaticamente la nota</p>
+                <p>🎯 Allena il tuo orecchio sui 7 gradi della scala!</p>
             </div>
 
-            <button id="startBtn" class="btn btn-primary">Inizia Sessione (30 Quiz)</button>
+            <button id="startBtn" class="btn btn-primary">Inizia Allenamento</button>
         </div>
 
         <div id="quizScreen" class="screen">
@@ -468,71 +487,66 @@ body {
                     <div id="progressFill" class="progress-fill"></div>
                 </div>
                 <div class="quiz-info">
-                    <span id="quizCounter">1/30</span>
-                    <span id="currentScale">Do Maggiore</span>
+                    <span id="quizCounter">0/10</span>
+                    <span id="currentScale">-</span>
                 </div>
             </div>
 
             <div class="quiz-content">
-                <div id="feedbackArea" class="feedback-area hidden">
-                    <div id="feedbackIcon"></div>
-                    <div id="feedbackText"></div>
-                </div>
-
                 <div id="questionArea" class="question-area">
-                    <h2>Suona questo grado della scala:</h2>
+                    <h2>Suona il grado richiesto:</h2>
                     <div class="interval-display">
-                        <div id="baseNote" class="base-note">Do Maggiore</div>
+                        <div id="baseNote" class="base-note">-</div>
                         <div class="arrow">→</div>
-                        <div id="targetInterval" class="target-interval">VI</div>
+                        <div id="targetInterval" class="target-interval">-</div>
                     </div>
                     <div id="listeningIndicator" class="listening-indicator hidden">
                         <div class="pulse"></div>
-                        <span>In ascolto...</span>
-                        <div id="detectedNoteDisplay" style="margin-left: 20px; font-size: 1.5rem; font-weight: bold; color: #4caf50;"></div>
+                        <span>Ascolto...</span>
                     </div>
+                    <div id="detectedNoteDisplay" class="detected-note-display"></div>
                 </div>
 
-                <div class="score-area">
-                    <div class="score-item">
-                        <span class="score-label">Corrette</span>
-                        <span id="correctCount" class="score-value correct">0</span>
-                    </div>
-                    <div class="score-item">
-                        <span class="score-label">Errate</span>
-                        <span id="wrongCount" class="score-value wrong">0</span>
-                    </div>
+                <div id="feedbackArea" class="feedback-area hidden">
+                    <div id="feedbackIcon" class="feedback-icon"></div>
+                    <div id="feedbackText" class="feedback-text"></div>
                 </div>
             </div>
 
-            <button id="stopBtn" class="btn btn-secondary">Stop</button>
+            <div class="bottom-controls">
+                <div class="score-display">
+                    <div class="score-item correct">
+                        <span>✓</span>
+                        <span id="correctCount">0</span>
+                    </div>
+                    <div class="score-item wrong">
+                        <span>✗</span>
+                        <span id="wrongCount">0</span>
+                    </div>
+                </div>
+                <button id="stopBtn" class="btn btn-secondary">Termina Sessione</button>
+            </div>
         </div>
 
         <div id="resultsScreen" class="screen">
             <h1>🎉 Sessione Completata!</h1>
             
-            <div class="results-summary">
-                <div class="result-card">
-                    <div class="result-number" id="finalCorrect">0</div>
-                    <div class="result-label">Risposte Corrette</div>
+            <div class="results-stats">
+                <div class="stat-row">
+                    <span class="stat-label">Risposte Corrette:</span>
+                    <span class="stat-value" style="color: var(--success-color);" id="finalCorrect">0</span>
                 </div>
-                <div class="result-card">
-                    <div class="result-number" id="finalWrong">0</div>
-                    <div class="result-label">Risposte Errate</div>
+                <div class="stat-row">
+                    <span class="stat-label">Risposte Sbagliate:</span>
+                    <span class="stat-value" style="color: var(--error-color);" id="finalWrong">0</span>
                 </div>
-                <div class="result-card">
-                    <div class="result-number" id="finalAccuracy">0%</div>
-                    <div class="result-label">Accuratezza</div>
+                <div class="stat-row">
+                    <span class="stat-label">Accuratezza:</span>
+                    <span class="stat-value accuracy" id="finalAccuracy">0%</span>
                 </div>
             </div>
 
             <button id="restartBtn" class="btn btn-primary">Nuova Sessione</button>
-        </div>
-
-        <div id="permissionScreen" class="screen">
-            <h2>🎤 Accesso al Microfono</h2>
-            <p>Questa app ha bisogno del microfono per ascoltare le note che suoni.</p>
-            <button id="requestMicBtn" class="btn btn-primary">Consenti Accesso</button>
         </div>
     </div>
 
@@ -541,57 +555,66 @@ class PitchDetector {
     constructor() {
         this.audioContext = null;
         this.analyser = null;
+        this.microphone = null;
         this.mediaStream = null;
-        this.bufferLength = 4096;
-        this.buffer = new Float32Array(this.bufferLength);
+        this.buffer = null;
         this.isListening = false;
         this.onPitchDetected = null;
-        this.noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-        this.A4 = 440;
-        this.lastDetectedNote = null;
         this.onVolumeChange = null;
+        this.lastDetectedNote = null;
+        
+        this.A4 = 440;
+        this.noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        
+        // SOGLIA VOLUME AUMENTATA - più sensibile al volume effettivo
+        this.currentVolume = 0;
+        this.volumeThreshold = 0.08; // Aumentato da 0.01 a 0.08
     }
 
     async initialize() {
         try {
-            this.mediaStream = await navigator.mediaDevices.getUserMedia({ 
+            this.mediaStream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     echoCancellation: false,
                     noiseSuppression: false,
-                    autoGainControl: true
-                } 
+                    autoGainControl: false
+                }
             });
-            
+
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             this.analyser = this.audioContext.createAnalyser();
-            this.analyser.fftSize = this.bufferLength * 2;
-            this.analyser.smoothingTimeConstant = 0.3;
+            this.microphone = this.audioContext.createMediaStreamSource(this.mediaStream);
             
-            const source = this.audioContext.createMediaStreamSource(this.mediaStream);
-            source.connect(this.analyser);
+            this.analyser.fftSize = 4096;
+            this.buffer = new Float32Array(this.analyser.fftSize);
             
-            console.log('✅ Audio initialized');
+            this.microphone.connect(this.analyser);
+            
+            console.log('🎤 Microphone initialized');
             return true;
         } catch (error) {
-            console.error('❌ Error:', error);
+            console.error('❌ Microphone error:', error);
             return false;
         }
     }
 
     startListening(callback) {
-        if (!this.analyser) return;
-        this.isListening = true;
         this.onPitchDetected = callback;
-        console.log('🎤 Listening...');
+        this.isListening = true;
+        this.lastDetectedNote = null;
+        console.log('👂 Started listening');
         this.detectPitch();
     }
 
     stopListening() {
         this.isListening = false;
+        this.onPitchDetected = null;
+        console.log('🛑 Stopped listening');
     }
 
     detectPitch() {
-        if (!this.isListening) return;
+        if (!this.isListening || !this.analyser) return;
+        
         this.analyser.getFloatTimeDomainData(this.buffer);
         
         let sum = 0;
@@ -599,9 +622,17 @@ class PitchDetector {
             sum += this.buffer[i] * this.buffer[i];
         }
         const volume = Math.sqrt(sum / this.buffer.length);
+        this.currentVolume = volume;
         
         if (this.onVolumeChange) {
             this.onVolumeChange(volume);
+        }
+        
+        // CONTROLLO VOLUME PRIMA DI RILEVARE NOTE
+        // Se il volume è troppo basso, ignora completamente il rilevamento
+        if (volume < this.volumeThreshold) {
+            requestAnimationFrame(() => this.detectPitch());
+            return;
         }
         
         const pitch = this.autoCorrelate(this.buffer, this.audioContext.sampleRate);
@@ -610,7 +641,7 @@ class PitchDetector {
             const note = this.frequencyToNote(pitch);
             
             if (!this.lastDetectedNote || this.lastDetectedNote !== note.note) {
-                console.log(`🎵 ${note.note} (${pitch.toFixed(2)} Hz)`);
+                console.log(`🎵 ${note.note} (${pitch.toFixed(2)} Hz, vol: ${volume.toFixed(3)})`);
                 this.lastDetectedNote = note.note;
                 
                 if (this.onPitchDetected) {
@@ -635,7 +666,8 @@ class PitchDetector {
         }
         rms = Math.sqrt(rms / size);
         
-        if (rms < 0.015) return -1;
+        // SOGLIA RMS AUMENTATA - da 0.015 a 0.08 per ignorare rumore di fondo
+        if (rms < 0.08) return -1;
         
         let correlations = [];
         let lastCorrelation = 1;
@@ -649,7 +681,8 @@ class PitchDetector {
             
             correlation = 1 - (correlation / maxSamples);
             
-            if (correlation > 0.75 && correlation > lastCorrelation) {
+            // SOGLIA CORRELAZIONE AUMENTATA - da 0.75 a 0.85 per maggiore precisione
+            if (correlation > 0.85 && correlation > lastCorrelation) {
                 correlations.push({ offset: offset, correlation: correlation });
             }
             
@@ -663,7 +696,8 @@ class PitchDetector {
         bestCorrelation = correlations[0].correlation;
         bestOffset = correlations[0].offset;
         
-        if (bestCorrelation > 0.75 && bestOffset > 0) {
+        // SOGLIA CORRELAZIONE AUMENTATA anche qui
+        if (bestCorrelation > 0.85 && bestOffset > 0) {
             for (let i = 1; i < correlations.length && i < 3; i++) {
                 if (correlations[i].offset < bestOffset * 0.6) {
                     if (correlations[i].correlation > bestCorrelation * 0.9) {
@@ -724,7 +758,7 @@ class IntervalTrainerApp {
     constructor() {
         this.pitchDetector = new PitchDetector();
         this.currentQuiz = 0;
-        this.totalQuizzes = 30;
+        this.totalQuizzes = 10;
         this.correctAnswers = 0;
         this.wrongAnswers = 0;
         this.selectedScale = null;
@@ -732,32 +766,32 @@ class IntervalTrainerApp {
         this.isWaitingForAnswer = false;
         this.detectedNotes = [];
         this.noteDetectionTimeout = null;
-        
-        this.degrees = {
-            'I': { index: 0, name: 'I (Tonica)' },
-            'II': { index: 1, name: 'II (Sopratonica)' },
-            'III': { index: 2, name: 'III (Mediante)' },
-            'IV': { index: 3, name: 'IV (Sottodominante)' },
-            'V': { index: 4, name: 'V (Dominante)' },
-            'VI': { index: 5, name: 'VI (Sopradominante)' },
-            'VII': { index: 6, name: 'VII (Sensibile)' }
-        };
-        
+
         this.scales = {
-            'C': { notes: ['C', 'D', 'E', 'F', 'G', 'A', 'B'], display: 'Do' },
-            'G': { notes: ['G', 'A', 'B', 'C', 'D', 'E', 'F#'], display: 'Sol' },
-            'D': { notes: ['D', 'E', 'F#', 'G', 'A', 'B', 'C#'], display: 'Re' },
-            'A': { notes: ['A', 'B', 'C#', 'D', 'E', 'F#', 'G#'], display: 'La' },
-            'E': { notes: ['E', 'F#', 'G#', 'A', 'B', 'C#', 'D#'], display: 'Mi' },
-            'B': { notes: ['B', 'C#', 'D#', 'E', 'F#', 'G#', 'A#'], display: 'Si' },
-            'F#': { notes: ['F#', 'G#', 'A#', 'B', 'C#', 'D#', 'E#'], display: 'Fa#' },
-            'Db': { notes: ['Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb', 'C'], display: 'Reb' },
-            'Ab': { notes: ['Ab', 'Bb', 'C', 'Db', 'Eb', 'F', 'G'], display: 'Lab' },
-            'Eb': { notes: ['Eb', 'F', 'G', 'Ab', 'Bb', 'C', 'D'], display: 'Mib' },
-            'Bb': { notes: ['Bb', 'C', 'D', 'Eb', 'F', 'G', 'A'], display: 'Sib' },
-            'F': { notes: ['F', 'G', 'A', 'Bb', 'C', 'D', 'E'], display: 'Fa' }
+            'C': { display: 'Do', notes: ['C', 'D', 'E', 'F', 'G', 'A', 'B'] },
+            'G': { display: 'Sol', notes: ['G', 'A', 'B', 'C', 'D', 'E', 'F#'] },
+            'D': { display: 'Re', notes: ['D', 'E', 'F#', 'G', 'A', 'B', 'C#'] },
+            'A': { display: 'La', notes: ['A', 'B', 'C#', 'D', 'E', 'F#', 'G#'] },
+            'E': { display: 'Mi', notes: ['E', 'F#', 'G#', 'A', 'B', 'C#', 'D#'] },
+            'B': { display: 'Si', notes: ['B', 'C#', 'D#', 'E', 'F#', 'G#', 'A#'] },
+            'F#': { display: 'Fa#', notes: ['F#', 'G#', 'A#', 'B', 'C#', 'D#', 'E#'] },
+            'Db': { display: 'Reb', notes: ['Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb', 'C'] },
+            'Ab': { display: 'Lab', notes: ['Ab', 'Bb', 'C', 'Db', 'Eb', 'F', 'G'] },
+            'Eb': { display: 'Mib', notes: ['Eb', 'F', 'G', 'Ab', 'Bb', 'C', 'D'] },
+            'Bb': { display: 'Sib', notes: ['Bb', 'C', 'D', 'Eb', 'F', 'G', 'A'] },
+            'F': { display: 'Fa', notes: ['F', 'G', 'A', 'Bb', 'C', 'D', 'E'] }
         };
-        
+
+        this.degrees = {
+            '1': { name: 'Tonica (1)', index: 0 },
+            '2': { name: '2a Maggiore', index: 1 },
+            '3': { name: '3a Maggiore', index: 2 },
+            '4': { name: '4a Giusta', index: 3 },
+            '5': { name: '5a Giusta', index: 4 },
+            '6': { name: '6a Maggiore', index: 5 },
+            '7': { name: '7a Maggiore', index: 6 }
+        };
+
         this.initializeUI();
     }
 
@@ -778,8 +812,9 @@ class IntervalTrainerApp {
             const indicator = document.getElementById('listeningIndicator');
             if (indicator && !indicator.classList.contains('hidden')) {
                 const pulse = indicator.querySelector('.pulse');
-                if (pulse && volume > 0.01) {
-                    pulse.style.backgroundColor = volume > 0.05 ? '#4caf50' : '#4a90e2';
+                // SOGLIA VISUALE AUMENTATA per indicatore
+                if (pulse && volume > 0.05) {
+                    pulse.style.backgroundColor = volume > 0.15 ? '#4caf50' : '#4a90e2';
                 }
             }
         };
@@ -1037,7 +1072,7 @@ class IntervalTrainerApp {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 App loaded');
+    console.log('🚀 App loaded - Version with improved noise filtering');
     window.app = new IntervalTrainerApp();
 });
     </script>
