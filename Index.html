@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1a1a2e">
-    <title>Scale Degree Trainer</title>
+    <title>Scale Degree Trainer - Piano</title>
     <style>
 * {
     margin: 0;
@@ -443,13 +443,13 @@ body {
         <div id="permissionScreen" class="screen">
             <div class="permission-icon">🎤</div>
             <h1>Accesso al Microfono</h1>
-            <p>Questa app ha bisogno del microfono per rilevare le note che suoni sulla chitarra.</p>
+            <p>Questa app ha bisogno del microfono per rilevare le note che suoni al pianoforte.</p>
             <button id="requestMicBtn" class="btn btn-primary">Consenti Accesso</button>
         </div>
 
         <div id="setupScreen" class="screen">
-            <h1>🎸 Scale Degree Trainer</h1>
-            <p class="subtitle">Allena il tuo orecchio sui gradi delle scale</p>
+            <h1>🎹 Scale Degree Trainer</h1>
+            <p class="subtitle">Allena il tuo orecchio sui gradi delle scale al pianoforte</p>
             
             <div class="setup-section">
                 <label for="scaleSelect">Scegli la tonalità:</label>
@@ -473,11 +473,11 @@ body {
             <div class="info-box">
                 <h3>Come funziona</h3>
                 <p>📝 Ti verrà mostrato un grado della scala (es. "3a Maggiore")</p>
-                <p>🎸 Suona la nota corrispondente sulla chitarra</p>
+                <p>🎹 Suona la nota corrispondente al pianoforte</p>
                 <p>✓ L'app riconoscerà automaticamente la nota</p>
                 <p>🎯 Allena il tuo orecchio sui 7 gradi della scala!</p>
-                <p><strong>💡 Importante:</strong> Suona in modo chiaro e con volume adeguato per un rilevamento accurato</p>
-                <p><strong>⏸️ Pausa tra le note:</strong> Attendi un breve silenzio tra una nota e l'altra per evitare rilevamenti spuri</p>
+                <p><strong>💡 Importante:</strong> Suona note singole con attacco chiaro</p>
+                <p><strong>⏸️ Pausa tra le note:</strong> Lascia che la nota precedente si spenga prima di suonare la successiva</p>
             </div>
 
             <button id="startBtn" class="btn btn-primary">Inizia Allenamento</button>
@@ -508,7 +508,7 @@ body {
                     </div>
                     <div id="detectedNoteDisplay" class="detected-note-display"></div>
                     <div id="volumeDebug" style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 10px; display: none;">
-                        Volume: <span id="volumeValue">0.000</span> / 0.250 (min)
+                        Volume: <span id="volumeValue">0.000</span> / 0.180 (min)
                     </div>
                 </div>
 
@@ -571,13 +571,13 @@ class PitchDetector {
         this.A4 = 440;
         this.noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
         
-        // SOGLIE AUMENTATE AL MASSIMO
+        // SOGLIE OTTIMIZZATE PER PIANOFORTE
         this.currentVolume = 0;
-        this.volumeThreshold = 0.25; // AUMENTATO DRASTICAMENTE a 0.25
+        this.volumeThreshold = 0.18; // Piano ha attacco più netto, soglia leggermente più bassa
         
-        // GATE per stabilità segnale - AUMENTATO
+        // GATE per stabilità segnale
         this.noteStabilityBuffer = [];
-        this.requiredStableDetections = 3; // AUMENTATO a 3 rilevamenti consecutivi
+        this.requiredStableDetections = 3; // 3 rilevamenti consecutivi
         
         // Flag per evitare auto-start
         this.isInitialized = false;
@@ -590,14 +590,18 @@ class PitchDetector {
         this.volumeHistory = [];
         this.maxVolumeHistory = 20;
         
-        // COOLDOWN: tempo minimo tra due note rilevate
+        // COOLDOWN: tempo minimo tra due note rilevate (piano ha sustain lungo)
         this.lastNoteTime = 0;
-        this.cooldownPeriod = 800; // 800ms di cooldown tra note
+        this.cooldownPeriod = 600; // Ridotto a 600ms per il piano (attacco più veloce)
         
         // SILENCE GATE: richiede un periodo di silenzio tra le note
-        this.silenceFramesRequired = 5; // 5 frame consecutivi sotto soglia
+        this.silenceFramesRequired = 3; // Ridotto a 3 frame per piano (attacco più definito)
         this.currentSilenceFrames = 0;
         this.readyForNextNote = true;
+        
+        // FILTRO FREQUENZE: limiti per PIANOFORTE (A0 = 27.5 Hz a C8 = 4186 Hz)
+        this.minPianoFreq = 25; // Leggermente sotto A0
+        this.maxPianoFreq = 4500; // Leggermente sopra C8
     }
 
     async initialize() {
@@ -693,7 +697,7 @@ class PitchDetector {
         }
         
         // SILENCE GATE: traccia periodi di silenzio
-        const silenceThreshold = 0.08; // Soglia più bassa per rilevare "silenzio"
+        const silenceThreshold = 0.06; // Soglia più bassa per piano (decadimento naturale)
         if (volume < silenceThreshold) {
             this.currentSilenceFrames++;
             if (this.currentSilenceFrames >= this.silenceFramesRequired) {
@@ -707,12 +711,12 @@ class PitchDetector {
         const timeSinceLastNote = Date.now() - this.lastNoteTime;
         const inCooldown = timeSinceLastNote < this.cooldownPeriod;
         
-        // CONTROLLO VOLUME PRIMA DI RILEVARE NOTE - DOPPIA SOGLIA
+        // CONTROLLO VOLUME PRIMA DI RILEVARE NOTE - OTTIMIZZATO PER PIANO
         // 1. Il volume corrente deve superare la soglia
-        // 2. Il volume corrente deve essere significativamente più alto della media
+        // 2. Il volume corrente deve essere significativamente più alto della media (spike detection)
         // 3. Deve essere pronto per la prossima nota (dopo silenzio)
         // 4. Non deve essere in cooldown
-        const volumeSpike = volume > (avgVolume * 2.5); // Picco significativo
+        const volumeSpike = volume > (avgVolume * 2.2); // Ridotto a 2.2x per il piano (attacco più uniforme)
         
         if (volume < this.volumeThreshold || !volumeSpike || inCooldown || !this.readyForNextNote) {
             // Pulisci il buffer se non sono soddisfatte le condizioni
@@ -723,7 +727,8 @@ class PitchDetector {
         
         const pitch = this.autoCorrelate(this.buffer, this.audioContext.sampleRate);
         
-        if (pitch && pitch > 20 && pitch < 4000) {
+        // FILTRO FREQUENZE: accetta solo note nel range del pianoforte
+        if (pitch && pitch >= this.minPianoFreq && pitch <= this.maxPianoFreq) {
             const note = this.frequencyToNote(pitch);
             
             // GATE DI STABILITÀ: aggiungi al buffer
@@ -770,8 +775,8 @@ class PitchDetector {
         }
         rms = Math.sqrt(rms / size);
         
-        // SOGLIA RMS MASSIMA - 0.25 per ignorare TUTTO il rumore di fondo
-        if (rms < 0.25) return -1;
+        // SOGLIA RMS OTTIMIZZATA PER PIANO - suono più pulito rispetto alla chitarra
+        if (rms < 0.18) return -1;
         
         let correlations = [];
         let lastCorrelation = 1;
@@ -785,8 +790,8 @@ class PitchDetector {
             
             correlation = 1 - (correlation / maxSamples);
             
-            // SOGLIA CORRELAZIONE MASSIMA - da 0.85 a 0.90 per massima precisione
-            if (correlation > 0.90 && correlation > lastCorrelation) {
+            // SOGLIA CORRELAZIONE OTTIMIZZATA PER PIANO - suono più armonico e pulito
+            if (correlation > 0.88 && correlation > lastCorrelation) {
                 correlations.push({ offset: offset, correlation: correlation });
             }
             
@@ -800,8 +805,8 @@ class PitchDetector {
         bestCorrelation = correlations[0].correlation;
         bestOffset = correlations[0].offset;
         
-        // SOGLIA CORRELAZIONE MASSIMA anche qui - 0.90
-        if (bestCorrelation > 0.90 && bestOffset > 0) {
+        // SOGLIA CORRELAZIONE OTTIMIZZATA PER PIANO
+        if (bestCorrelation > 0.88 && bestOffset > 0) {
             for (let i = 1; i < correlations.length && i < 3; i++) {
                 if (correlations[i].offset < bestOffset * 0.6) {
                     if (correlations[i].correlation > bestCorrelation * 0.9) {
@@ -924,13 +929,13 @@ class IntervalTrainerApp {
             const indicator = document.getElementById('listeningIndicator');
             if (indicator && !indicator.classList.contains('hidden')) {
                 const pulse = indicator.querySelector('.pulse');
-                // SOGLIA VISUALE AGGIORNATA per le nuove soglie massime
+                // INDICATORE VISUALE OTTIMIZZATO PER PIANO
                 if (pulse) {
-                    if (volume > 0.3) {
+                    if (volume > 0.25) {
                         pulse.style.backgroundColor = '#4caf50'; // Verde: ottimo
-                    } else if (volume > 0.2) {
-                        pulse.style.backgroundColor = '#4a90e2'; // Blu: buono
-                    } else if (volume > 0.1) {
+                    } else if (volume > 0.18) {
+                        pulse.style.backgroundColor = '#4a90e2'; // Blu: buono (sopra soglia)
+                    } else if (volume > 0.10) {
                         pulse.style.backgroundColor = '#ff9800'; // Arancione: debole
                     } else {
                         pulse.style.backgroundColor = '#7b68ee'; // Viola: troppo debole
@@ -1200,11 +1205,12 @@ class IntervalTrainerApp {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 App loaded - Version 3.1 with COOLDOWN & SILENCE GATE');
-    console.log('📊 Settings: Volume = 0.25, RMS = 0.25, Correlation = 0.90, Stability = 3');
-    console.log('⏱️  Cooldown = 800ms, Silence gate = 5 frames');
-    console.log('🎯 Spike detection: volume must be 2.5x higher than average');
-    console.log('🔇 Silence required between notes to prevent false detections');
+    console.log('🚀 App loaded - Version 4.0 PIANO OPTIMIZED');
+    console.log('🎹 Optimized for piano/keyboard detection');
+    console.log('📊 Settings: Volume = 0.18, RMS = 0.18, Correlation = 0.88, Stability = 3');
+    console.log('⏱️  Cooldown = 600ms, Silence gate = 3 frames, Spike = 2.2x');
+    console.log('🎼 Frequency range: 25-4500 Hz (A0 to C8)');
+    console.log('🔇 Silence threshold = 0.06 (lower for piano sustain)');
     window.app = new IntervalTrainerApp();
 });
     </script>
