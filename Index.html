@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1a1a2e">
-    <title>Scale Degree Trainer - Piano v5.0</title>
+    <title>Scale Degree Trainer - Piano v6.0</title>
     <style>
 * {
     margin: 0;
@@ -94,6 +94,101 @@ body {
     margin-bottom: 10px;
     font-weight: 600;
     font-size: 1.1rem;
+}
+
+.sensitivity-controls {
+    width: 100%;
+    max-width: 400px;
+    background: var(--bg-card);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+}
+
+.sensitivity-controls h3 {
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+}
+
+.slider-group {
+    margin-bottom: 20px;
+}
+
+.slider-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.slider-value {
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.slider {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(74, 144, 226, 0.2);
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.slider::-webkit-slider-thumb:hover {
+    background: var(--secondary-color);
+    transform: scale(1.2);
+}
+
+.slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.slider::-moz-range-thumb:hover {
+    background: var(--secondary-color);
+    transform: scale(1.2);
+}
+
+.preset-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.btn-preset {
+    flex: 1;
+    padding: 10px;
+    font-size: 0.9rem;
+    border: 2px solid var(--primary-color);
+    background: transparent;
+    color: var(--primary-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-preset:hover, .btn-preset.active {
+    background: var(--primary-color);
+    color: white;
 }
 
 #scaleSelect {
@@ -482,6 +577,48 @@ body {
                 <p id="mobileWarning" style="display: none; color: #ff9800; margin-top: 10px;"><strong>📱 iPhone/iPad:</strong> Suona con volume deciso! Il microfono è molto sensibile al rumore.</p>
             </div>
 
+            <div class="sensitivity-controls">
+                <h3>🎚️ Calibrazione Sensibilità</h3>
+                
+                <div class="preset-buttons">
+                    <button class="btn-preset" id="presetDesktop">💻 Desktop</button>
+                    <button class="btn-preset" id="presetMobile">📱 Mobile</button>
+                    <button class="btn-preset" id="presetCustom">⚙️ Manuale</button>
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Volume Minimo</span>
+                        <span class="slider-value" id="volumeValue">0.18</span>
+                    </div>
+                    <input type="range" min="0.05" max="0.50" step="0.01" value="0.18" class="slider" id="volumeSlider">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Rilevamenti Consecutivi</span>
+                        <span class="slider-value" id="stabilityValue">3</span>
+                    </div>
+                    <input type="range" min="2" max="6" step="1" value="3" class="slider" id="stabilitySlider">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Picco Richiesto (vs media)</span>
+                        <span class="slider-value" id="spikeValue">2.2x</span>
+                    </div>
+                    <input type="range" min="1.5" max="4.0" step="0.1" value="2.2" class="slider" id="spikeSlider">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Pausa tra Note (ms)</span>
+                        <span class="slider-value" id="cooldownValue">600</span>
+                    </div>
+                    <input type="range" min="300" max="1200" step="100" value="600" class="slider" id="cooldownSlider">
+                </div>
+            </div>
+
             <script>
                 // Mostra avviso per dispositivi mobile
                 if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
@@ -517,17 +654,8 @@ body {
                     </div>
                     <div id="detectedNoteDisplay" class="detected-note-display"></div>
                     <div id="volumeDebug" style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 10px; display: none;">
-                        Volume: <span id="volumeValue">0.000</span> / <span id="volumeThreshold">0.180</span> (min)
+                        Volume: <span id="volumeValue">0.000</span>
                     </div>
-                    
-                    <script>
-                        // Imposta la soglia corretta nel display debug
-                        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-                        const thresholdDisplay = document.getElementById('volumeThreshold');
-                        if (thresholdDisplay) {
-                            thresholdDisplay.textContent = isMobile ? '0.300' : '0.180';
-                        }
-                    </script>
                 </div>
 
                 <div id="feedbackArea" class="feedback-area hidden">
@@ -575,7 +703,7 @@ body {
 
     <script>
 class PitchDetector {
-    constructor() {
+    constructor(config = {}) {
         this.audioContext = null;
         this.analyser = null;
         this.microphone = null;
@@ -589,16 +717,14 @@ class PitchDetector {
         this.A4 = 440;
         this.noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
         
-        // RILEVAMENTO DISPOSITIVO MOBILE
-        this.isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        
-        // SOGLIE OTTIMIZZATE PER PIANOFORTE (differenti per mobile/desktop)
-        this.currentVolume = 0;
-        this.volumeThreshold = this.isMobile ? 0.30 : 0.18; // Mobile: soglia MOLTO più alta
+        // CONFIGURAZIONE PERSONALIZZABILE
+        this.volumeThreshold = config.volumeThreshold || 0.18;
+        this.requiredStableDetections = config.stability || 3;
+        this.spikeMultiplier = config.spikeMultiplier || 2.2;
+        this.cooldownPeriod = config.cooldown || 600;
         
         // GATE per stabilità segnale
         this.noteStabilityBuffer = [];
-        this.requiredStableDetections = this.isMobile ? 4 : 3; // Mobile: più rilevamenti
         
         // Flag per evitare auto-start
         this.isInitialized = false;
@@ -610,22 +736,26 @@ class PitchDetector {
         // Tracciamento volume massimo per calibrazione dinamica
         this.volumeHistory = [];
         this.maxVolumeHistory = 20;
+        this.currentVolume = 0;
         
-        // COOLDOWN: tempo minimo tra due note rilevate (piano ha sustain lungo)
+        // COOLDOWN: tempo minimo tra due note rilevate
         this.lastNoteTime = 0;
-        this.cooldownPeriod = this.isMobile ? 800 : 600; // Mobile: cooldown più lungo
         
         // SILENCE GATE: richiede un periodo di silenzio tra le note
-        this.silenceFramesRequired = this.isMobile ? 5 : 3; // Mobile: più frame di silenzio
+        this.silenceFramesRequired = Math.max(3, Math.floor(this.requiredStableDetections * 0.8));
         this.currentSilenceFrames = 0;
         this.readyForNextNote = true;
-        
-        // SPIKE DETECTION: fattore di picco rispetto alla media
-        this.spikeMultiplier = this.isMobile ? 3.0 : 2.2; // Mobile: spike molto più alto
         
         // FILTRO FREQUENZE: limiti per PIANOFORTE (A0 = 27.5 Hz a C8 = 4186 Hz)
         this.minPianoFreq = 25; // Leggermente sotto A0
         this.maxPianoFreq = 4500; // Leggermente sopra C8
+        
+        console.log('🎛️ PitchDetector config:', {
+            volumeThreshold: this.volumeThreshold,
+            stability: this.requiredStableDetections,
+            spike: this.spikeMultiplier + 'x',
+            cooldown: this.cooldownPeriod + 'ms'
+        });
     }
 
     async initialize() {
@@ -721,7 +851,7 @@ class PitchDetector {
         }
         
         // SILENCE GATE: traccia periodi di silenzio
-        const silenceThreshold = this.isMobile ? 0.10 : 0.06; // Mobile: soglia silenzio più alta
+        const silenceThreshold = this.volumeThreshold * 0.35; // Dinamico: 35% della soglia volume
         if (volume < silenceThreshold) {
             this.currentSilenceFrames++;
             if (this.currentSilenceFrames >= this.silenceFramesRequired) {
@@ -799,9 +929,8 @@ class PitchDetector {
         }
         rms = Math.sqrt(rms / size);
         
-        // SOGLIA RMS OTTIMIZZATA - MOBILE ha soglia MOLTO più alta
-        const rmsThreshold = this.isMobile ? 0.30 : 0.18;
-        if (rms < rmsThreshold) return -1;
+        // SOGLIA RMS - usa la stessa soglia del volume per consistenza
+        if (rms < this.volumeThreshold) return -1;
         
         let correlations = [];
         let lastCorrelation = 1;
@@ -815,8 +944,8 @@ class PitchDetector {
             
             correlation = 1 - (correlation / maxSamples);
             
-            // SOGLIA CORRELAZIONE - MOBILE richiede correlazione più alta
-            const correlationThreshold = this.isMobile ? 0.92 : 0.88;
+            // SOGLIA CORRELAZIONE - dinamica basata sulla sensibilità
+            const correlationThreshold = 0.85 + (this.volumeThreshold - 0.18) * 0.2; // Più alta per soglie volume alte
             if (correlation > correlationThreshold && correlation > lastCorrelation) {
                 correlations.push({ offset: offset, correlation: correlation });
             }
@@ -831,8 +960,8 @@ class PitchDetector {
         bestCorrelation = correlations[0].correlation;
         bestOffset = correlations[0].offset;
         
-        // SOGLIA CORRELAZIONE - MOBILE richiede correlazione più alta
-        const correlationThreshold = this.isMobile ? 0.92 : 0.88;
+        // SOGLIA CORRELAZIONE - dinamica basata sulla sensibilità
+        const correlationThreshold = 0.85 + (this.volumeThreshold - 0.18) * 0.2;
         if (bestCorrelation > correlationThreshold && bestOffset > 0) {
             for (let i = 1; i < correlations.length && i < 3; i++) {
                 if (correlations[i].offset < bestOffset * 0.6) {
@@ -900,7 +1029,7 @@ class PitchDetector {
 
 class IntervalTrainerApp {
     constructor() {
-        this.pitchDetector = new PitchDetector();
+        this.pitchDetector = null; // Sarà creato con la config all'avvio
         this.currentQuiz = 0;
         this.totalQuizzes = 10;
         this.correctAnswers = 0;
@@ -911,6 +1040,14 @@ class IntervalTrainerApp {
         this.isWaitingForAnswer = false;
         this.detectedNotes = [];
         this.noteDetectionTimeout = null;
+        
+        // Configurazione sensibilità
+        this.sensitivityConfig = {
+            volumeThreshold: 0.18,
+            stability: 3,
+            spikeMultiplier: 2.2,
+            cooldown: 600
+        };
 
         this.scales = {
             'C': { display: 'Do', notes: ['C', 'D', 'E', 'F', 'G', 'A', 'B'] },
@@ -953,37 +1090,105 @@ class IntervalTrainerApp {
         document.getElementById('restartBtn').addEventListener('click', () => this.reset());
         document.getElementById('requestMicBtn').addEventListener('click', () => this.requestMicrophone());
         
-        this.pitchDetector.onVolumeChange = (volume) => {
-            const indicator = document.getElementById('listeningIndicator');
-            if (indicator && !indicator.classList.contains('hidden')) {
-                const pulse = indicator.querySelector('.pulse');
-                // INDICATORE VISUALE - adattato per mobile/desktop
-                const isMobile = this.pitchDetector.isMobile;
-                const threshold = isMobile ? 0.30 : 0.18;
-                
-                if (pulse) {
-                    if (volume > threshold * 1.5) {
-                        pulse.style.backgroundColor = '#4caf50'; // Verde: ottimo
-                    } else if (volume > threshold) {
-                        pulse.style.backgroundColor = '#4a90e2'; // Blu: buono (sopra soglia)
-                    } else if (volume > threshold * 0.6) {
-                        pulse.style.backgroundColor = '#ff9800'; // Arancione: debole
-                    } else {
-                        pulse.style.backgroundColor = '#7b68ee'; // Viola: troppo debole
-                    }
-                }
-                
-                // Mostra il volume per debug (commenta per nascondere)
-                const volumeDebug = document.getElementById('volumeDebug');
-                const volumeValue = document.getElementById('volumeValue');
-                if (volumeDebug && volumeValue) {
-                    // volumeDebug.style.display = 'block'; // Decommenta per vedere il volume
-                    volumeValue.textContent = volume.toFixed(3);
-                }
+        // Setup slider controls
+        this.setupSensitivityControls();
+        
+        this.checkMicrophonePermission();
+    }
+
+    setupSensitivityControls() {
+        const volumeSlider = document.getElementById('volumeSlider');
+        const stabilitySlider = document.getElementById('stabilitySlider');
+        const spikeSlider = document.getElementById('spikeSlider');
+        const cooldownSlider = document.getElementById('cooldownSlider');
+        
+        const volumeValue = document.getElementById('volumeValue');
+        const stabilityValue = document.getElementById('stabilityValue');
+        const spikeValue = document.getElementById('spikeValue');
+        const cooldownValue = document.getElementById('cooldownValue');
+        
+        // Imposta preset iniziale in base al dispositivo
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+            this.applyPreset('mobile');
+        } else {
+            this.applyPreset('desktop');
+        }
+        
+        // Event listeners per slider
+        volumeSlider.addEventListener('input', (e) => {
+            this.sensitivityConfig.volumeThreshold = parseFloat(e.target.value);
+            volumeValue.textContent = e.target.value;
+            this.markCustomPreset();
+        });
+        
+        stabilitySlider.addEventListener('input', (e) => {
+            this.sensitivityConfig.stability = parseInt(e.target.value);
+            stabilityValue.textContent = e.target.value;
+            this.markCustomPreset();
+        });
+        
+        spikeSlider.addEventListener('input', (e) => {
+            this.sensitivityConfig.spikeMultiplier = parseFloat(e.target.value);
+            spikeValue.textContent = e.target.value + 'x';
+            this.markCustomPreset();
+        });
+        
+        cooldownSlider.addEventListener('input', (e) => {
+            this.sensitivityConfig.cooldown = parseInt(e.target.value);
+            cooldownValue.textContent = e.target.value;
+            this.markCustomPreset();
+        });
+        
+        // Preset buttons
+        document.getElementById('presetDesktop').addEventListener('click', () => this.applyPreset('desktop'));
+        document.getElementById('presetMobile').addEventListener('click', () => this.applyPreset('mobile'));
+        document.getElementById('presetCustom').addEventListener('click', () => this.markCustomPreset());
+    }
+    
+    applyPreset(preset) {
+        const presets = {
+            desktop: {
+                volumeThreshold: 0.18,
+                stability: 3,
+                spikeMultiplier: 2.2,
+                cooldown: 600
+            },
+            mobile: {
+                volumeThreshold: 0.30,
+                stability: 4,
+                spikeMultiplier: 3.0,
+                cooldown: 800
             }
         };
         
-        this.checkMicrophonePermission();
+        if (presets[preset]) {
+            this.sensitivityConfig = { ...presets[preset] };
+            this.updateSliders();
+            
+            // Update active button
+            document.querySelectorAll('.btn-preset').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`preset${preset.charAt(0).toUpperCase() + preset.slice(1)}`).classList.add('active');
+        }
+    }
+    
+    markCustomPreset() {
+        document.querySelectorAll('.btn-preset').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('presetCustom').classList.add('active');
+    }
+    
+    updateSliders() {
+        document.getElementById('volumeSlider').value = this.sensitivityConfig.volumeThreshold;
+        document.getElementById('volumeValue').textContent = this.sensitivityConfig.volumeThreshold.toFixed(2);
+        
+        document.getElementById('stabilitySlider').value = this.sensitivityConfig.stability;
+        document.getElementById('stabilityValue').textContent = this.sensitivityConfig.stability;
+        
+        document.getElementById('spikeSlider').value = this.sensitivityConfig.spikeMultiplier;
+        document.getElementById('spikeValue').textContent = this.sensitivityConfig.spikeMultiplier.toFixed(1) + 'x';
+        
+        document.getElementById('cooldownSlider').value = this.sensitivityConfig.cooldown;
+        document.getElementById('cooldownValue').textContent = this.sensitivityConfig.cooldown;
     }
 
     async checkMicrophonePermission() {
@@ -997,9 +1202,10 @@ class IntervalTrainerApp {
     }
 
     async requestMicrophone() {
-        const initialized = await this.pitchDetector.initialize();
+        const tempDetector = new PitchDetector(this.sensitivityConfig);
+        const initialized = await tempDetector.initialize();
         if (initialized) {
-            this.pitchDetector.stop();
+            tempDetector.stop();
             this.showScreen('setup');
         } else {
             alert('Impossibile accedere al microfono.');
@@ -1022,6 +1228,30 @@ class IntervalTrainerApp {
             this.selectedScale = scaleValue;
         }
 
+        // Crea PitchDetector con la configurazione corrente
+        this.pitchDetector = new PitchDetector(this.sensitivityConfig);
+        
+        // Setup volume change callback
+        this.pitchDetector.onVolumeChange = (volume) => {
+            const indicator = document.getElementById('listeningIndicator');
+            if (indicator && !indicator.classList.contains('hidden')) {
+                const pulse = indicator.querySelector('.pulse');
+                const threshold = this.sensitivityConfig.volumeThreshold;
+                
+                if (pulse) {
+                    if (volume > threshold * 1.5) {
+                        pulse.style.backgroundColor = '#4caf50'; // Verde: ottimo
+                    } else if (volume > threshold) {
+                        pulse.style.backgroundColor = '#4a90e2'; // Blu: buono (sopra soglia)
+                    } else if (volume > threshold * 0.6) {
+                        pulse.style.backgroundColor = '#ff9800'; // Arancione: debole
+                    } else {
+                        pulse.style.backgroundColor = '#7b68ee'; // Viola: troppo debole
+                    }
+                }
+            }
+        };
+        
         const initialized = await this.pitchDetector.initialize();
         if (!initialized) {
             alert('Impossibile accedere al microfono.');
@@ -1221,12 +1451,16 @@ class IntervalTrainerApp {
     }
 
     stopSession() {
-        this.pitchDetector.stop();
+        if (this.pitchDetector) {
+            this.pitchDetector.stop();
+        }
         this.showResults();
     }
 
     showResults() {
-        this.pitchDetector.stop();
+        if (this.pitchDetector) {
+            this.pitchDetector.stop();
+        }
         
         const accuracy = this.totalQuizzes > 0 
             ? Math.round((this.correctAnswers / this.totalQuizzes) * 100) 
@@ -1240,7 +1474,9 @@ class IntervalTrainerApp {
     }
 
     reset() {
-        this.pitchDetector.stop();
+        if (this.pitchDetector) {
+            this.pitchDetector.stop();
+        }
         this.currentQuiz = 0;
         this.correctAnswers = 0;
         this.wrongAnswers = 0;
@@ -1250,23 +1486,12 @@ class IntervalTrainerApp {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    console.log('🚀 App loaded - Version 5.0 MOBILE-OPTIMIZED');
-    console.log('📱 Device: ' + (isMobile ? 'MOBILE (strict thresholds)' : 'DESKTOP'));
+    console.log('🚀 App loaded - Version 6.0 MANUAL CONTROLS');
+    console.log('🎚️ Sensitivity controls available in setup screen');
     console.log('🎹 Optimized for piano/keyboard detection');
-    
-    if (isMobile) {
-        console.log('📊 MOBILE Settings: Volume = 0.30, RMS = 0.30, Correlation = 0.92, Stability = 4');
-        console.log('⏱️  Cooldown = 800ms, Silence gate = 5 frames, Spike = 3.0x');
-        console.log('🔇 Silence threshold = 0.10');
-    } else {
-        console.log('📊 DESKTOP Settings: Volume = 0.18, RMS = 0.18, Correlation = 0.88, Stability = 3');
-        console.log('⏱️  Cooldown = 600ms, Silence gate = 3 frames, Spike = 2.2x');
-        console.log('🔇 Silence threshold = 0.06');
-    }
-    
     console.log('🎼 Frequency range: 25-4500 Hz (A0 to C8)');
     console.log('🔄 No consecutive degree repeats');
+    console.log('💾 Settings applied when session starts');
     window.app = new IntervalTrainerApp();
 });
     </script>
