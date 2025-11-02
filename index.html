@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#1a1a2e" />
-  <title>Scale Degree Trainer - Piano v6.4 (Edge/PC Fix)</title>
+  <title>Scale Degree Trainer - Piano v6.5 (Single-Stream fix)</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root { --primary-color:#4a90e2; --secondary-color:#7b68ee; --success-color:#4caf50; --error-color:#f44336; --bg-dark:#1a1a2e; --bg-card:#16213e; --text-primary:#ffffff; --text-secondary:#a0a0a0; }
@@ -90,16 +90,9 @@
 </head>
 <body>
   <div class="container">
-    <div id="permissionScreen" class="screen">
-      <div class="permission-icon">🎤</div>
-      <h1>Accesso al Microfono</h1>
-      <p>Questa app ha bisogno del microfono per rilevare le note. Premi il bottone qui sotto e consenti.</p>
-      <button id="requestMicBtn" class="btn btn-primary">Consenti Accesso</button>
-    </div>
-
-    <div id="setupScreen" class="screen">
+    <div id="setupScreen" class="screen active">
       <h1>🎹 Scale Degree Trainer</h1>
-      <p class="subtitle">Allena l'orecchio sui gradi delle scale</p>
+      <p class="subtitle">Allenati sui gradi delle scale (versione single‑stream)</p>
 
       <div class="setup-section">
         <label for="scaleSelect">Scegli la tonalità:</label>
@@ -120,17 +113,8 @@
         </select>
       </div>
 
-      <div class="info-box">
-        <h3>Come funziona</h3>
-        <p>📝 Ti verrà mostrato un grado (es. "3a Maggiore").</p>
-        <p>🎹 Suona la nota corrispondente.</p>
-        <p>✓ Riconoscimento automatico.</p>
-        <p><strong>💡</strong> Attacco chiaro e lascia spegnere la nota tra le prove.</p>
-        <p id="mobileWarning" style="display:none;color:#ff9800;margin-top:10px;"><strong>📱 iPhone/iPad:</strong> apri in Safari (non PWA) e consenti il microfono.</p>
-      </div>
-
       <div class="sensitivity-controls">
-        <h3>🎚️ Calibrazione Sensibilità</h3>
+        <h3>🎚️ Calibrazione</h3>
         <div class="preset-buttons">
           <button class="btn-preset" id="presetDesktop">💻 Desktop</button>
           <button class="btn-preset" id="presetMobile">📱 Mobile</button>
@@ -141,9 +125,8 @@
           <button class="btn-preset" id="calibrateBtn">🧪 Calibra rumore (1s)</button>
         </div>
         <div style="margin:6px 2px 12px; font-size:.9rem; color:var(--text-secondary);">
-          Modalità: <span id="modeLabel">Piano</span> · Soglia stimata: <span id="thresholdLabel">0.18</span>
+          Modalità: <span id="modeLabel">Piano</span> · Soglia: <span id="thresholdLabel">0.18</span>
         </div>
-
         <div class="slider-group">
           <div class="slider-label"><span>Volume Minimo</span><span class="slider-value" id="volumeValue">0.18</span></div>
           <input type="range" min="0.05" max="0.50" step="0.01" value="0.18" class="slider" id="volumeSlider" />
@@ -162,13 +145,8 @@
         </div>
       </div>
 
-      <script>
-        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-          document.getElementById('mobileWarning').style.display = 'block';
-        }
-      </script>
-
       <button id="startBtn" class="btn btn-primary">Inizia Allenamento</button>
+      <div style="margin-top:10px;color:#ffb74d;font-size:.95rem" id="fileWarn"></div>
     </div>
 
     <div id="quizScreen" class="screen">
@@ -209,8 +187,8 @@
     <div id="resultsScreen" class="screen">
       <h1>🎉 Sessione Completata!</h1>
       <div class="results-stats">
-        <div class="stat-row"><span class="stat-label">Risposte Corrette:</span><span class="stat-value" style="color:var(--success-color);" id="finalCorrect">0</span></div>
-        <div class="stat-row"><span class="stat-label">Risposte Sbagliate:</span><span class="stat-value" style="color:var(--error-color);" id="finalWrong">0</span></div>
+        <div class="stat-row"><span class="stat-label">Corrette:</span><span class="stat-value" style="color:var(--success-color);" id="finalCorrect">0</span></div>
+        <div class="stat-row"><span class="stat-label">Sbagliate:</span><span class="stat-value" style="color:var(--error-color);" id="finalWrong">0</span></div>
         <div class="stat-row"><span class="stat-label">Accuratezza:</span><span class="stat-value accuracy" id="finalAccuracy">0%</span></div>
       </div>
       <button id="restartBtn" class="btn btn-primary">Nuova Sessione</button>
@@ -218,145 +196,74 @@
   </div>
 
   <script>
-    // Avviso chiaro se aperto come file locale
     if (location.protocol === 'file:') {
-      console.log('Aperto via file:// — Edge/Chrome possono funzionare ma sono meno prevedibili. Se il microfono non parte, usa http://localhost.');
-    }
-
-    async function diagnoseMic() {
-      const isSecure = window.isSecureContext || location.hostname === 'localhost';
-      if (!isSecure && location.protocol !== 'file:') {
-        throw new Error('SECURITY_ERROR: contesto non sicuro');
-      }
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('UNSUPPORTED: getUserMedia non disponibile');
-      }
-      try {
-        const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-        s.getTracks().forEach(t => t.stop());
-        return { ok: true };
-      } catch (e) {
-        const nm = (e && e.name) || 'UnknownError';
-        if (nm === 'NotAllowedError') throw new Error('NOT_ALLOWED');
-        if (nm === 'NotFoundError') throw new Error('NOT_FOUND');
-        if (nm === 'SecurityError') throw new Error('SECURITY_ERROR');
-        throw e;
-      }
+      fileWarn.textContent = 'Aperto via file://. Se il microfono non parte, usa http://localhost.';
     }
 
     class PitchDetector {
       constructor(config = {}) {
-        this.audioContext = null; this.analyser = null; this.microphone = null; this.mediaStream = null; this.buffer = null;
+        this.audioContext = null; this.analyser = null; this.sourceNode = null; this.mediaStream = null; this.buffer = null;
         this.isListening = false; this.onPitchDetected = null; this.onVolumeChange = null; this.lastDetectedNote = null;
-        this.highpass = null; this.notch50 = null; this.lowpass = null;
         this.A4 = 440; this.noteNames = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
         this.volumeThreshold = config.volumeThreshold || 0.18; this.requiredStableDetections = config.stability || 3; this.spikeMultiplier = config.spikeMultiplier || 2.2; this.cooldownPeriod = config.cooldown || 600;
         this.noteStabilityBuffer = []; this.isInitialized = false; this.warmupStartTime = null; this.warmupDuration = 500; this.volumeHistory = []; this.maxVolumeHistory = 20; this.currentVolume = 0; this.lastNoteTime = 0;
-        this.requiredSilenceMs = 250; this.silenceSince = null; this.readyForNextNote = true; this.emaVolume = 0; this.emaAlpha = 0.2; this.minAttackRise = 0.04; this.lastPitchHz = null;
-        this.minPianoFreq = 50; this.maxPianoFreq = 2000; this.instrumentMode = 'piano';
-        document.addEventListener('visibilitychange', () => { if (!this.audioContext) return; if (document.visibilityState === 'visible' && this.audioContext.state === 'suspended') { this.audioContext.resume(); } });
+        this.requiredSilenceMs = 250; this.silenceSince = null; this.emaVolume = 0; this.emaAlpha = 0.2; this.minAttackRise = 0.04; this.lastPitchHz = null; this.minFreq=50; this.maxFreq=2000;
       }
-      setInstrumentMode(mode) {
-        this.instrumentMode = mode;
-        if (!this.lowpass) {
-          if (mode==='guitar'){ this.minPianoFreq=70; this.maxPianoFreq=1500; } else { this.minPianoFreq=50; this.maxPianoFreq=2000; }
-          return;
-        }
-        if (mode==='guitar'){ this.minPianoFreq=70; this.maxPianoFreq=1500; this.lowpass.frequency.value=1400; } else { this.minPianoFreq=50; this.maxPianoFreq=2000; this.lowpass.frequency.value=1800; }
-      }
-      async initialize() {
+      setInstrumentMode(mode){ if(mode==='guitar'){ this.minFreq=70; this.maxFreq=1500; } else { this.minFreq=50; this.maxFreq=2000; } }
+      async initializeWithStream(stream) {
         try {
-          const isiOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-          const trySets = isiOS
-            ? [ { audio: { echoCancellation:true, noiseSuppression:true, autoGainControl:true, channelCount:1 } }, { audio: true } ]
-            : [ { audio: true }, { audio: { echoCancellation:true, noiseSuppression:true, autoGainControl:true } }, { audio: { channelCount:1, sampleRate:44100 } } ];
-          let stream = null, lastErr = null;
-          for (const c of trySets) {
-            try { stream = await navigator.mediaDevices.getUserMedia(c); break; }
-            catch (e) { lastErr = e; }
-          }
-          if (!stream) { console.error('❌ Microphone error:', lastErr); return false; }
-          this.mediaStream = stream;
-
+          this.mediaStream = stream; // usa lo stream esterno (single-stream)
           this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          this.highpass = this.audioContext.createBiquadFilter(); this.highpass.type='highpass'; this.highpass.frequency.value=80;
-          this.notch50 = this.audioContext.createBiquadFilter(); this.notch50.type='notch'; this.notch50.frequency.value=50; this.notch50.Q=20;
-          this.lowpass = this.audioContext.createBiquadFilter(); this.lowpass.type='lowpass'; this.lowpass.frequency.value=1800; this.lowpass.Q=0.7;
-          this.analyser = this.audioContext.createAnalyser(); this.analyser.fftSize=4096; this.analyser.smoothingTimeConstant=0.0; this.buffer=new Float32Array(this.analyser.fftSize);
-          this.microphone = this.audioContext.createMediaStreamSource(this.mediaStream);
-          this.microphone.connect(this.highpass); this.highpass.connect(this.notch50); this.notch50.connect(this.lowpass); this.lowpass.connect(this.analyser);
+          this.analyser = this.audioContext.createAnalyser();
+          this.analyser.fftSize = 4096; this.analyser.smoothingTimeConstant = 0.0;
+          this.buffer = new Float32Array(this.analyser.fftSize);
+          this.sourceNode = this.audioContext.createMediaStreamSource(this.mediaStream);
+          this.sourceNode.connect(this.analyser);
           this.isInitialized = true; this.isListening = false; return true;
-        } catch (error) { console.error('❌ Microphone error:', error); return false; }
+        } catch (e) { console.error('init error', e); return false; }
       }
-      async startListening(callback) { this.onPitchDetected = callback; this.isListening = true; this.lastDetectedNote = null; this.noteStabilityBuffer = []; this.volumeHistory = []; this.warmupStartTime = Date.now(); this.lastNoteTime = 0; this.silenceSince = performance.now(); this.readyForNextNote = true; if (this.audioContext && this.audioContext.state === 'suspended') { await this.audioContext.resume(); } this.detectPitch(); }
-      stopListening() { this.isListening=false; this.onPitchDetected=null; this.noteStabilityBuffer=[]; this.lastDetectedNote=null; this.volumeHistory=[]; this.warmupStartTime=null; this.lastNoteTime=0; this.silenceSince=null; this.readyForNextNote=true; }
+      async startListening(cb){ this.onPitchDetected = cb; this.isListening = true; this.lastDetectedNote=null; this.noteStabilityBuffer=[]; this.volumeHistory=[]; this.warmupStartTime=Date.now(); this.lastNoteTime=0; this.silenceSince=performance.now(); if(this.audioContext?.state==='suspended') await this.audioContext.resume(); this.detectPitch(); }
+      stopListening(){ this.isListening=false; this.onPitchDetected=null; this.noteStabilityBuffer=[]; this.lastDetectedNote=null; this.volumeHistory=[]; this.warmupStartTime=null; this.lastNoteTime=0; this.silenceSince=null; }
       centsDiff(f1,f2){ return 1200 * Math.log2(f1 / f2); }
-      detectPitch() {
-        if (!this.isListening || !this.analyser || !this.isInitialized) return;
-        const timeSinceStart = Date.now() - this.warmupStartTime; if (timeSinceStart < this.warmupDuration) { requestAnimationFrame(()=>this.detectPitch()); return; }
-        this.analyser.getFloatTimeDomainData(this.buffer);
-        let sum=0; for (let i=0;i<this.buffer.length;i++) sum+=this.buffer[i]*this.buffer[i];
-        const volume=Math.sqrt(sum/this.buffer.length); this.currentVolume=volume;
-        this.emaVolume = this.emaAlpha*volume + (1-this.emaAlpha)*this.emaVolume; const attack = volume - this.emaVolume;
-        this.volumeHistory.push(volume); if (this.volumeHistory.length>this.maxVolumeHistory) this.volumeHistory.shift();
-        const avgVolume = this.volumeHistory.reduce((a,b)=>a+b,0)/this.volumeHistory.length;
-        const dbg=document.getElementById('volumeDebug'); if (dbg && dbg.style.display !== 'none'){ const v=document.getElementById('volumeDebugValue'); const af=document.getElementById('armedFlag'); const at=document.getElementById('attackVal'); if (v) v.textContent=volume.toFixed(3); if (af) af.textContent=(this.silenceSince !== null && (performance.now()-this.silenceSince)>=this.requiredSilenceMs); if (at) at.textContent=attack.toFixed(3); }
-        const silenceThreshold = Math.min(this.volumeThreshold * 0.4, 0.02); const now=performance.now(); if (volume < silenceThreshold) { if (this.silenceSince===null) this.silenceSince=now; } else { this.silenceSince=null; }
-        const armed = this.silenceSince !== null && (now - this.silenceSince) >= this.requiredSilenceMs;
-        const timeSinceLastNote = Date.now() - this.lastNoteTime; const inCooldown = timeSinceLastNote < this.cooldownPeriod;
-        const volumeSpike = volume > (avgVolume * this.spikeMultiplier); const hasAttack = attack > this.minAttackRise;
-        if (volume < this.volumeThreshold || !volumeSpike || inCooldown || !armed || !hasAttack) { this.noteStabilityBuffer=[]; requestAnimationFrame(()=>this.detectPitch()); return; }
-        const pitch = this.autoCorrelate(this.buffer, this.audioContext.sampleRate);
-        if (pitch !== -1 && pitch && pitch >= this.minPianoFreq && pitch <= this.maxPianoFreq) {
-          if (this.lastPitchHz){ const ratio=pitch/this.lastPitchHz; if (Math.abs(ratio-2.0)<0.03 || Math.abs(ratio-0.5)<0.03){ requestAnimationFrame(()=>this.detectPitch()); return; } }
-          const note = this.frequencyToNote(pitch);
-          this.noteStabilityBuffer.push({name:note.note, freq:pitch}); if (this.noteStabilityBuffer.length>this.requiredStableDetections) this.noteStabilityBuffer.shift();
-          if (this.noteStabilityBuffer.length>=this.requiredStableDetections){ const first=this.noteStabilityBuffer[0]; const allSameName=this.noteStabilityBuffer.every(n=>n.name===first.name); const allCloseFreq=this.noteStabilityBuffer.every(n=>Math.abs(this.centsDiff(n.freq,first.freq))<35); if (allSameName && allCloseFreq && (!this.lastDetectedNote || this.lastDetectedNote!==note.note)){ this.lastDetectedNote=note.note; this.lastPitchHz=pitch; this.lastNoteTime=Date.now(); this.readyForNextNote=false; if (this.onPitchDetected) this.onPitchDetected(note); } }
+      detectPitch(){ if(!this.isListening||!this.analyser||!this.isInitialized) return; const timeSinceStart=Date.now()-this.warmupStartTime; if(timeSinceStart<this.warmupDuration){ requestAnimationFrame(()=>this.detectPitch()); return; } this.analyser.getFloatTimeDomainData(this.buffer); let sum=0; for(let i=0;i<this.buffer.length;i++) sum+=this.buffer[i]*this.buffer[i]; const volume=Math.sqrt(sum/this.buffer.length); this.currentVolume=volume; this.emaVolume=this.emaAlpha*volume+(1-this.emaAlpha)*this.emaVolume; const attack=volume-this.emaVolume; this.volumeHistory.push(volume); if(this.volumeHistory.length>this.maxVolumeHistory) this.volumeHistory.shift(); const avgVolume=this.volumeHistory.reduce((a,b)=>a+b,0)/this.volumeHistory.length; if(this.onVolumeChange){ this.onVolumeChange(volume); const v=document.getElementById('volumeDebugValue'); if(v) v.textContent=volume.toFixed(3); }
+        const silenceThreshold=Math.min(this.volumeThreshold*0.4,0.02); const now=performance.now(); if(volume<silenceThreshold){ if(this.silenceSince===null) this.silenceSince=now; } else { this.silenceSince=null; }
+        const armed=this.silenceSince!==null && (now-this.silenceSince)>=this.requiredSilenceMs; const inCooldown=(Date.now()-this.lastNoteTime)<this.cooldownPeriod; const volumeSpike=volume>(avgVolume*this.spikeMultiplier); const hasAttack=attack>this.minAttackRise; if(volume<this.volumeThreshold || !volumeSpike || inCooldown || !armed || !hasAttack){ this.noteStabilityBuffer=[]; requestAnimationFrame(()=>this.detectPitch()); return; }
+        const pitch=this.autoCorrelate(this.buffer, this.audioContext.sampleRate); if(pitch!==-1 && pitch && pitch>=this.minFreq && pitch<=this.maxFreq){ if(this.lastPitchHz){ const ratio=pitch/this.lastPitchHz; if(Math.abs(ratio-2)<0.03 || Math.abs(ratio-0.5)<0.03){ requestAnimationFrame(()=>this.detectPitch()); return; } }
+          const note=this.frequencyToNote(pitch); this.noteStabilityBuffer.push({name:note.note,freq:pitch}); if(this.noteStabilityBuffer.length>this.requiredStableDetections) this.noteStabilityBuffer.shift(); if(this.noteStabilityBuffer.length>=this.requiredStableDetections){ const first=this.noteStabilityBuffer[0]; const allSame=this.noteStabilityBuffer.every(n=>n.name===first.name); const allClose=this.noteStabilityBuffer.every(n=>Math.abs(this.centsDiff(n.freq,first.freq))<35); if(allSame && allClose && (!this.lastDetectedNote || this.lastDetectedNote!==note.note)){ this.lastDetectedNote=note.note; this.lastPitchHz=pitch; this.lastNoteTime=Date.now(); if(this.onPitchDetected) this.onPitchDetected(note); } }
         } else { this.noteStabilityBuffer=[]; }
-        requestAnimationFrame(()=>this.detectPitch());
-      }
-      autoCorrelate(buffer, sampleRate){ let size=buffer.length; let maxSamples=Math.floor(size/2); let rms=0; for (let i=0;i<size;i++){ const v=buffer[i]; rms+=v*v; } rms=Math.sqrt(rms/size); if (rms < this.volumeThreshold) return -1; let bestOffset=-1; let bestCorrelation=0; let lastCorrelation=1; for (let offset=1; offset<maxSamples; offset++){ let correlation=0; for (let i=0;i<maxSamples;i++) correlation += Math.abs(buffer[i]-buffer[i+offset]); correlation=1-(correlation/maxSamples); const threshold=0.85 + (this.volumeThreshold-0.18)*0.2; if (correlation>threshold && correlation>lastCorrelation){ bestCorrelation=correlation; bestOffset=offset; } lastCorrelation=correlation; } if (bestOffset===-1) return -1; if (bestOffset<maxSamples-1 && bestOffset>0){ const y1=buffer[bestOffset-1], y2=buffer[bestOffset], y3=buffer[bestOffset+1]; const shift=(y3-y1)/(2*(2*y2-y1-y3)); if (isFinite(shift) && Math.abs(shift)<1) return sampleRate/(bestOffset+shift); } return sampleRate/bestOffset; }
-      frequencyToNote(f){ const noteNum = 12*(Math.log(f/this.A4)/Math.log(2))+69; const r=Math.round(noteNum); const name=this.noteNames[r%12]; const octave=Math.floor(r/12)-1; return {frequency:f, note:name, octave, fullNote:`${name}${octave}`}; }
-      stop(){ this.isListening=false; this.isInitialized=false; this.noteStabilityBuffer=[]; this.lastDetectedNote=null; this.lastPitchHz=null; if (this.mediaStream){ this.mediaStream.getTracks().forEach(t=>t.stop()); this.mediaStream=null; } if (this.audioContext && this.audioContext.state!=='closed'){ this.audioContext.close(); this.audioContext=null; } this.analyser=null; this.microphone=null; this.highpass=null; this.notch50=null; this.lowpass=null; }
+        requestAnimationFrame(()=>this.detectPitch()); }
+      autoCorrelate(buffer, sampleRate){ let size=buffer.length; let maxSamples=Math.floor(size/2); let rms=0; for(let i=0;i<size;i++){ const v=buffer[i]; rms+=v*v; } rms=Math.sqrt(rms/size); if(rms<this.volumeThreshold) return -1; let bestOffset=-1; let bestCorrelation=0; let lastCorrelation=1; for(let offset=1; offset<maxSamples; offset++){ let correlation=0; for(let i=0;i<maxSamples;i++) correlation += Math.abs(buffer[i]-buffer[i+offset]); correlation=1-(correlation/maxSamples); const threshold=0.85+(this.volumeThreshold-0.18)*0.2; if(correlation>threshold && correlation>lastCorrelation){ bestCorrelation=correlation; bestOffset=offset; } lastCorrelation=correlation; } if(bestOffset===-1) return -1; if(bestOffset<maxSamples-1 && bestOffset>0){ const y1=buffer[bestOffset-1], y2=buffer[bestOffset], y3=buffer[bestOffset+1]; const shift=(y3-y1)/(2*(2*y2-y1-y3)); if(isFinite(shift)&&Math.abs(shift)<1) return sampleRate/(bestOffset+shift); } return sampleRate/bestOffset; }
+      frequencyToNote(f){ const noteNum=12*(Math.log(f/this.A4)/Math.log(2))+69; const r=Math.round(noteNum); const name=this.noteNames[r%12]; const octave=Math.floor(r/12)-1; return {frequency:f, note:name, octave, fullNote:`${name}${octave}`}; }
+      stop(){ this.isListening=false; this.isInitialized=false; this.noteStabilityBuffer=[]; this.lastDetectedNote=null; this.lastPitchHz=null; if(this.audioContext && this.audioContext.state!=='closed'){ this.audioContext.close(); } this.audioContext=null; this.analyser=null; this.sourceNode=null; /* NON fermiamo le tracce: single-stream */ }
     }
 
     class IntervalTrainerApp {
-      constructor(){ this.pitchDetector=null; this.currentQuiz=0; this.totalQuizzes=10; this.correctAnswers=0; this.wrongAnswers=0; this.selectedScale=null; this.currentQuestion=null; this.lastDegreeKey=null; this.isWaitingForAnswer=false; this.detectedNotes=[]; this.noteDetectionTimeout=null; this.answerWindowTimer=null; this.instrumentMode='piano'; this.sensitivityConfig={ volumeThreshold:0.18, stability:3, spikeMultiplier:2.2, cooldown:600 }; this.scales={ 'C':{display:'Do',notes:['C','D','E','F','G','A','B']}, 'G':{display:'Sol',notes:['G','A','B','C','D','E','F#']}, 'D':{display:'Re',notes:['D','E','F#','G','A','B','C#']}, 'A':{display:'La',notes:['A','B','C#','D','E','F#','G#']}, 'E':{display:'Mi',notes:['E','F#','G#','A','B','C#','D#']}, 'B':{display:'Si',notes:['B','C#','D#','E','F#','G#','A#']}, 'F#':{display:'Fa#',notes:['F#','G#','A#','B','C#','D#','E#']}, 'Db':{display:'Reb',notes:['Db','Eb','F','Gb','Ab','Bb','C']}, 'Ab':{display:'Lab',notes:['Ab','Bb','C','Db','Eb','F','G']}, 'Eb':{display:'Mib',notes:['Eb','F','G','Ab','Bb','C','D']}, 'Bb':{display:'Sib',notes:['Bb','C','D','Eb','F','G','A']}, 'F':{display:'Fa',notes:['F','G','A','Bb','C','D','E']} }; this.degrees={ '1':{name:'Tonica (1)',index:0}, '2':{name:'2a Maggiore',index:1}, '3':{name:'3a Maggiore',index:2}, '4':{name:'4a Giusta',index:3}, '5':{name:'5a Giusta',index:4}, '6':{name:'6a Maggiore',index:5}, '7':{name:'7a Maggiore',index:6} }; this.initializeUI(); }
-      async calibrateNoise(){ try{ const isiOS=/iPhone|iPad|iPod/.test(navigator.userAgent); const stream=await navigator.mediaDevices.getUserMedia({ audio: isiOS?{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:1}:true }); const ac=new (window.AudioContext||window.webkitAudioContext)(); const src=ac.createMediaStreamSource(stream); const analyser=ac.createAnalyser(); analyser.fftSize=2048; const buf=new Float32Array(analyser.fftSize); src.connect(analyser); const samples=[]; let running=true; const start=performance.now(); const loop=()=>{ if(!running) return; analyser.getFloatTimeDomainData(buf); let s=0; for(let i=0;i<buf.length;i++){s+=buf[i]*buf[i];} const rms=Math.sqrt(s/buf.length); samples.push(rms); if(performance.now()-start>=1000){running=false; finish(); return;} requestAnimationFrame(loop); }; const finish=()=>{ const n=samples.length||1; const mean=samples.reduce((a,b)=>a+b,0)/n; const variance=samples.reduce((a,b)=>a+(b-mean)*(b-mean),0)/n; const std=Math.sqrt(variance); const suggested=Math.min(0.45, Math.max(0.02, mean+3*std)); this.sensitivityConfig.volumeThreshold=+(suggested.toFixed(2)); this.updateSliders(); const tLabel=document.getElementById('thresholdLabel'); if(tLabel) tLabel.textContent=this.sensitivityConfig.volumeThreshold.toFixed(2); stream.getTracks().forEach(t=>t.stop()); ac.close(); alert(`Soglia impostata a ${this.sensitivityConfig.volumeThreshold.toFixed(2)} (media+3σ)`); }; loop(); }catch(e){ alert('Calibrazione fallita: '+(e&&e.message?e.message:e)); } }
-      initializeUI(){ this.screens={ setup:document.getElementById('setupScreen'), quiz:document.getElementById('quizScreen'), results:document.getElementById('resultsScreen'), permission:document.getElementById('permissionScreen') }; document.getElementById('startBtn').addEventListener('click',()=>this.startSession()); document.getElementById('stopBtn').addEventListener('click',()=>this.stopSession()); document.getElementById('restartBtn').addEventListener('click',()=>this.reset()); document.getElementById('requestMicBtn').addEventListener('click',()=>this.requestMicrophone()); this.setupSensitivityControls(); const toggleBtn=document.getElementById('instrumentToggleBtn'); const modeLabel=document.getElementById('modeLabel'); toggleBtn?.addEventListener('click',()=>{ this.instrumentMode=this.instrumentMode==='piano'?'guitar':'piano'; toggleBtn.textContent=this.instrumentMode==='piano'?'🎹 Strumento: Piano':'🎸 Strumento: Chitarra'; modeLabel.textContent=this.instrumentMode==='piano'?'Piano':'Chitarra'; }); document.getElementById('calibrateBtn')?.addEventListener('click',()=>this.calibrateNoise()); this.checkMicrophonePermission(); }
+      constructor(){ this.pitchDetector=null; this._sharedStream=null; this.currentQuiz=0; this.totalQuizzes=10; this.correctAnswers=0; this.wrongAnswers=0; this.selectedScale=null; this.currentQuestion=null; this.lastDegreeKey=null; this.isWaitingForAnswer=false; this.detectedNotes=[]; this.noteDetectionTimeout=null; this.answerWindowTimer=null; this.instrumentMode='piano'; this.sensitivityConfig={ volumeThreshold:0.18, stability:3, spikeMultiplier:2.2, cooldown:600 }; this.scales={ 'C':{display:'Do',notes:['C','D','E','F','G','A','B']}, 'G':{display:'Sol',notes:['G','A','B','C','D','E','F#']}, 'D':{display:'Re',notes:['D','E','F#','G','A','B','C#']}, 'A':{display:'La',notes:['A','B','C#','D','E','F#','G#']}, 'E':{display:'Mi',notes:['E','F#','G#','A','B','C#','D#']}, 'B':{display:'Si',notes:['B','C#','D#','E','F#','G#','A#']}, 'F#':{display:'Fa#',notes:['F#','G#','A#','B','C#','D#','E#']}, 'Db':{display:'Reb',notes:['Db','Eb','F','Gb','Ab','Bb','C']}, 'Ab':{display:'Lab',notes:['Ab','Bb','C','Db','Eb','F','G']}, 'Eb':{display:'Mib',notes:['Eb','F','G','Ab','Bb','C','D']}, 'Bb':{display:'Sib',notes:['Bb','C','D','Eb','F','G','A']}, 'F':{display:'Fa',notes:['F','G','A','Bb','C','D','E']} }; this.degrees={ '1':{name:'Tonica (1)',index:0}, '2':{name:'2a Maggiore',index:1}, '3':{name:'3a Maggiore',index:2}, '4':{name:'4a Giusta',index:3}, '5':{name:'5a Giusta',index:4}, '6':{name:'6a Maggiore',index:5}, '7':{name:'7a Maggiore',index:6} }; this.initializeUI(); }
+      initializeUI(){ this.screens={ setup:document.getElementById('setupScreen'), quiz:document.getElementById('quizScreen'), results:document.getElementById('resultsScreen') }; document.getElementById('startBtn').addEventListener('click',()=>this.startSession()); document.getElementById('stopBtn').addEventListener('click',()=>this.stopSession()); document.getElementById('restartBtn').addEventListener('click',()=>this.reset()); this.setupSensitivityControls(); const toggleBtn=document.getElementById('instrumentToggleBtn'); const modeLabel=document.getElementById('modeLabel'); toggleBtn?.addEventListener('click',()=>{ this.instrumentMode=this.instrumentMode==='piano'?'guitar':'piano'; toggleBtn.textContent=this.instrumentMode==='piano'?'🎹 Strumento: Piano':'🎸 Strumento: Chitarra'; modeLabel.textContent=this.instrumentMode==='piano'?'Piano':'Chitarra'; }); document.getElementById('calibrateBtn')?.addEventListener('click',()=>this.calibrateNoise()); }
       setupSensitivityControls(){ const volumeSlider=document.getElementById('volumeSlider'); const stabilitySlider=document.getElementById('stabilitySlider'); const spikeSlider=document.getElementById('spikeSlider'); const cooldownSlider=document.getElementById('cooldownSlider'); const volumeValue=document.getElementById('volumeValue'); const stabilityValue=document.getElementById('stabilityValue'); const spikeValue=document.getElementById('spikeValue'); const cooldownValue=document.getElementById('cooldownValue'); const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent); if(isMobile) this.applyPreset('mobile'); else this.applyPreset('desktop'); volumeSlider.addEventListener('input',(e)=>{ this.sensitivityConfig.volumeThreshold=parseFloat(e.target.value); volumeValue.textContent=e.target.value; this.markCustomPreset(); }); stabilitySlider.addEventListener('input',(e)=>{ this.sensitivityConfig.stability=parseInt(e.target.value); stabilityValue.textContent=e.target.value; this.markCustomPreset(); }); spikeSlider.addEventListener('input',(e)=>{ this.sensitivityConfig.spikeMultiplier=parseFloat(e.target.value); spikeValue.textContent=e.target.value+'x'; this.markCustomPreset(); }); cooldownSlider.addEventListener('input',(e)=>{ this.sensitivityConfig.cooldown=parseInt(e.target.value); cooldownValue.textContent=e.target.value; this.markCustomPreset(); }); document.getElementById('presetDesktop').addEventListener('click',()=>this.applyPreset('desktop')); document.getElementById('presetMobile').addEventListener('click',()=>this.applyPreset('mobile')); document.getElementById('presetCustom').addEventListener('click',()=>this.markCustomPreset()); }
       applyPreset(preset){ const presets={ desktop:{volumeThreshold:0.18,stability:3,spikeMultiplier:2.2,cooldown:600}, mobile:{volumeThreshold:0.34,stability:4,spikeMultiplier:3.2,cooldown:950} }; if(presets[preset]){ this.sensitivityConfig={...presets[preset]}; this.updateSliders(); document.querySelectorAll('.btn-preset').forEach(b=>b.classList.remove('active')); document.getElementById(`preset${preset.charAt(0).toUpperCase()+preset.slice(1)}`).classList.add('active'); } }
       markCustomPreset(){ document.querySelectorAll('.btn-preset').forEach(b=>b.classList.remove('active')); document.getElementById('presetCustom').classList.add('active'); }
       updateSliders(){ document.getElementById('volumeSlider').value=this.sensitivityConfig.volumeThreshold; document.getElementById('volumeValue').textContent=this.sensitivityConfig.volumeThreshold.toFixed(2); document.getElementById('stabilitySlider').value=this.sensitivityConfig.stability; document.getElementById('stabilityValue').textContent=this.sensitivityConfig.stability; document.getElementById('spikeSlider').value=this.sensitivityConfig.spikeMultiplier; document.getElementById('spikeValue').textContent=this.sensitivityConfig.spikeMultiplier.toFixed(1)+'x'; document.getElementById('cooldownSlider').value=this.sensitivityConfig.cooldown; document.getElementById('cooldownValue').textContent=this.sensitivityConfig.cooldown; }
-      async checkMicrophonePermission(){
-        try {
-          if (navigator.permissions && location.protocol !== 'file:') {
-            const p = await navigator.permissions.query({ name: 'microphone' });
-            if (p.state === 'granted') { this.showScreen('setup'); return; }
-          }
-        } catch {}
-        this.showScreen('permission');
-      }
-      async requestMicrophone(){
-        const trySets = [
-          { audio: true },
-          { audio: { echoCancellation:true, noiseSuppression:true, autoGainControl:true } },
-          { audio: { channelCount:1, sampleRate:44100 } }
-        ];
-        let ok=false, lastErr=null;
-        for (const c of trySets){
-          try { const s=await navigator.mediaDevices.getUserMedia(c); s.getTracks().forEach(t=>t.stop()); ok=true; break; }
-          catch(e){ lastErr=e; }
+      async calibrateNoise(){ try{ const s=await navigator.mediaDevices.getUserMedia({ audio:true }); const ac=new (window.AudioContext||window.webkitAudioContext)(); const src=ac.createMediaStreamSource(s); const an=ac.createAnalyser(); an.fftSize=2048; const buf=new Float32Array(an.fftSize); src.connect(an); const samples=[]; let running=true; const start=performance.now(); const loop=()=>{ if(!running) return; an.getFloatTimeDomainData(buf); let t=0; for(let i=0;i<buf.length;i++){ t+=buf[i]*buf[i]; } const rms=Math.sqrt(t/buf.length); samples.push(rms); if(performance.now()-start>=1000){ running=false; finish(); return;} requestAnimationFrame(loop); }; const finish=()=>{ const n=samples.length||1; const mean=samples.reduce((a,b)=>a+b,0)/n; const variance=samples.reduce((a,b)=>a+(b-mean)*(b-mean),0)/n; const std=Math.sqrt(variance); const suggested=Math.min(0.45, Math.max(0.02, mean+3*std)); this.sensitivityConfig.volumeThreshold=+(suggested.toFixed(2)); this.updateSliders(); document.getElementById('thresholdLabel').textContent=this.sensitivityConfig.volumeThreshold.toFixed(2); s.getTracks().forEach(t=>t.stop()); ac.close(); alert(`Soglia impostata a ${this.sensitivityConfig.volumeThreshold.toFixed(2)} (media+3σ)`); }; loop(); }catch(e){ alert('Calibrazione fallita: '+(e&&e.message?e.message:e)); } }
+      async startSession(){
+        // 1) Richiesta UNA VOLTA con {audio:true}
+        if(!this._sharedStream){
+          try { this._sharedStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+          catch(e){ alert(`Accesso microfono negato: ${e.name}`); return; }
         }
-        if (ok) this.showScreen('setup');
-        else {
-          const name=(lastErr&&lastErr.name)||'UnknownError';
-          alert(`Impossibile accedere al microfono (${name}). Concedi il permesso e riprova.`);
-          this.showScreen('permission');
-        }
+        // 2) Detector che riusa lo stream
+        this.pitchDetector = new PitchDetector(this.sensitivityConfig);
+        this.pitchDetector.setInstrumentMode(this.instrumentMode);
+        const ok = await this.pitchDetector.initializeWithStream(this._sharedStream);
+        if(!ok){ alert('Impossibile inizializzare l\'audio.'); return; }
+
+        const scaleValue=document.getElementById('scaleSelect').value;
+        if(scaleValue==='random'){ const ks=Object.keys(this.scales); this.selectedScale=ks[Math.floor(Math.random()*ks.length)]; } else { this.selectedScale=scaleValue; }
+        this.currentQuiz=0; this.correctAnswers=0; this.wrongAnswers=0; this.lastDegreeKey=null;
+        document.getElementById('currentScale').textContent=this.scales[this.selectedScale].display+' Maggiore';
+        this.showScreen('quiz'); this.nextQuestion();
       }
       showScreen(n){ Object.values(this.screens).forEach(s=>s.classList.remove('active')); this.screens[n].classList.add('active'); }
-      async startSession(){ const scaleValue=document.getElementById('scaleSelect').value; if(scaleValue==='random'){ const ks=Object.keys(this.scales); this.selectedScale=ks[Math.floor(Math.random()*ks.length)]; } else { this.selectedScale=scaleValue; } this.pitchDetector=new PitchDetector(this.sensitivityConfig); this.pitchDetector.onVolumeChange=(volume)=>{ const indicator=document.getElementById('listeningIndicator'); if(indicator && !indicator.classList.contains('hidden')){ const pulse=indicator.querySelector('.pulse'); const th=this.sensitivityConfig.volumeThreshold; if(pulse){ if(volume>th*1.5) pulse.style.backgroundColor='#4caf50'; else if(volume>th) pulse.style.backgroundColor='#4a90e2'; else if(volume>th*0.6) pulse.style.backgroundColor='#ff9800'; else pulse.style.backgroundColor='#7b68ee'; } } const dbg=document.getElementById('volumeDebug'); if(dbg && dbg.style.display!=='none'){ const v=document.getElementById('volumeDebugValue'); if(v) v.textContent=volume.toFixed(3); } }; const initialized=await this.pitchDetector.initialize(); if(!initialized){ try{ await diagnoseMic(); }catch{} alert('Impossibile accedere al microfono.'); return; } this.pitchDetector.setInstrumentMode(this.instrumentMode); this.currentQuiz=0; this.correctAnswers=0; this.wrongAnswers=0; this.lastDegreeKey=null; document.getElementById('currentScale').textContent=this.scales[this.selectedScale].display+' Maggiore'; this.showScreen('quiz'); this.nextQuestion(); }
       nextQuestion(){ this.currentQuiz++; if(this.currentQuiz>this.totalQuizzes){ this.showResults(); return; } document.getElementById('quizCounter').textContent=`${this.currentQuiz}/${this.totalQuizzes}`; document.getElementById('progressFill').style.width=`${(this.currentQuiz/this.totalQuizzes)*100}%`; document.getElementById('correctCount').textContent=this.correctAnswers; document.getElementById('wrongCount').textContent=this.wrongAnswers; this.currentQuestion=this.generateQuestion(); document.getElementById('baseNote').textContent=this.scales[this.selectedScale].display+' Maggiore'; document.getElementById('targetInterval').textContent=this.currentQuestion.degreeName; document.getElementById('feedbackArea').classList.add('hidden'); document.getElementById('questionArea').style.display='block'; const scaleNotes=this.scales[this.selectedScale].notes.map(n=>this.normalizeNote(n)); this.currentDiatonicSet=new Set(scaleNotes); this.startListening(); }
       generateQuestion(){ const scale=this.scales[this.selectedScale]; const degreeKeys=Object.keys(this.degrees); let available=degreeKeys; if(this.lastDegreeKey!==null) available=degreeKeys.filter(k=>k!==this.lastDegreeKey); const degreeKey=available[Math.floor(Math.random()*available.length)]; this.lastDegreeKey=degreeKey; const degree=this.degrees[degreeKey]; const targetNote=scale.notes[degree.index]; return { scaleName:scale.display+' Maggiore', degreeNumber:degreeKey, degreeName:degree.name, targetNote:this.normalizeNote(targetNote), targetNoteDisplay:this.displayNote(targetNote) }; }
       normalizeNote(n){ const map={'Db':'C#','Eb':'D#','Gb':'F#','Ab':'G#','Bb':'A#','E#':'F'}; return map[n]||n; }
@@ -369,7 +276,11 @@
       showResults(){ if(this.pitchDetector) this.pitchDetector.stop(); const acc=this.totalQuizzes>0?Math.round((this.correctAnswers/this.totalQuizzes)*100):0; document.getElementById('finalCorrect').textContent=this.correctAnswers; document.getElementById('finalWrong').textContent=this.wrongAnswers; document.getElementById('finalAccuracy').textContent=acc+'%'; this.showScreen('results'); }
       reset(){ if(this.pitchDetector) this.pitchDetector.stop(); this.currentQuiz=0; this.correctAnswers=0; this.wrongAnswers=0; this.lastDegreeKey=null; this.showScreen('setup'); }
     }
+
     document.addEventListener('DOMContentLoaded',()=>{ window.app=new IntervalTrainerApp(); });
+
+    // Rilascia lo stream solo alla chiusura della pagina
+    window.addEventListener('beforeunload',()=>{ try { window.app?._sharedStream?.getTracks().forEach(t=>t.stop()); } catch {} });
   </script>
 </body>
 </html>
