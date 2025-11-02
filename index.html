@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1a1a2e">
-<title>Scale Degree Trainer - Piano v6.6</title>
+<title>Scale Degree Trainer - Piano v6.8.2</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--primary-color:#4a90e2;--secondary-color:#7b68ee;--success-color:#4caf50;--error-color:#f44336;--bg-dark:#1a1a2e;--bg-card:#16213e;--text-primary:#fff;--text-secondary:#a0a0a0}
@@ -24,8 +24,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
 .scale-dropdown{width:100%;padding:15px;background:var(--bg-card);border:2px solid var(--primary-color);border-radius:12px;color:var(--text-primary);font-size:1.05rem;cursor:pointer;transition:.3s}
 .scale-dropdown:hover{border-color:var(--secondary-color);box-shadow:0 5px 15px rgba(74,144,226,.3)}
 .scale-dropdown option{background:var(--bg-card);color:var(--text-primary);padding:10px}
+.info-box{background:var(--bg-card);padding:16px;border-radius:12px;margin-bottom:16px;border-left:4px solid var(--primary-color)}
+.info-box h3{color:var(--primary-color);margin-bottom:8px}
+.info-box p{color:var(--text-secondary);line-height:1.6;margin-bottom:6px}
+.warning-box{background:rgba(255,152,0,.1);border-left-color:#ff9800;color:#ff9800}
+.preset-buttons{display:flex;gap:10px;margin-bottom:10px}
+.btn-preset{flex:1;padding:10px;font-size:.9rem;border:2px solid var(--primary-color);background:transparent;color:var(--primary-color);border-radius:8px;cursor:pointer;transition:.3s}
+.btn-preset:hover,.btn-preset.active{background:var(--primary-color);color:#fff}
+.btn-primary{padding:16px 34px;background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));border:none;border-radius:12px;color:#fff;font-size:1.1rem;font-weight:600;cursor:pointer;transition:.3s;box-shadow:0 4px 15px rgba(74,144,226,.4)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(74,144,226,.6)}
+.btn-primary:active{transform:translateY(0)}
 .sensitivity-controls{width:100%;max-width:420px;background:var(--bg-card);padding:20px;border-radius:12px;margin-bottom:20px}
-.sensitivity-controls h3{color:var(--primary-color);margin-bottom:16px;font-size:1.05rem}
 .slider-group{margin-bottom:16px}
 .slider-label{display:flex;justify-content:space-between;margin-bottom:6px;font-size:.95rem;color:var(--text-secondary)}
 .slider-value{color:var(--primary-color);font-weight:700}
@@ -34,16 +43,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
 .slider::-webkit-slider-thumb:hover{background:var(--secondary-color);transform:scale(1.2)}
 .slider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--primary-color);cursor:pointer;border:none;transition:.2s}
 .slider::-moz-range-thumb:hover{background:var(--secondary-color);transform:scale(1.2)}
-.preset-buttons{display:flex;gap:10px;margin-bottom:10px}
-.btn-preset{flex:1;padding:10px;font-size:.9rem;border:2px solid var(--primary-color);background:transparent;color:var(--primary-color);border-radius:8px;cursor:pointer;transition:.3s}
-.btn-preset:hover,.btn-preset.active{background:var(--primary-color);color:#fff}
-.btn-primary{padding:16px 34px;background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));border:none;border-radius:12px;color:#fff;font-size:1.1rem;font-weight:600;cursor:pointer;transition:.3s;box-shadow:0 4px 15px rgba(74,144,226,.4)}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(74,144,226,.6)}
-.btn-primary:active{transform:translateY(0)}
-.info-box{background:var(--bg-card);padding:16px;border-radius:12px;margin-bottom:16px;border-left:4px solid var(--primary-color)}
-.info-box h3{color:var(--primary-color);margin-bottom:8px}
-.info-box p{color:var(--text-secondary);line-height:1.6;margin-bottom:6px}
-.warning-box{background:rgba(255,152,0,.1);border-left-color:#ff9800;color:#ff9800}
 #quizScreen{justify-content:flex-start;padding-top:16px}
 .quiz-header{text-align:center;margin-bottom:22px}
 .quiz-header h2{font-size:1.6rem;margin-bottom:8px}
@@ -68,6 +67,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
 .score-item{background:rgba(74,144,226,.1);padding:16px;border-radius:12px}
 .score-item-value{font-size:1.6rem;font-weight:700;color:var(--primary-color)}
 .score-item-label{color:var(--text-secondary);margin-top:4px}
+.sticky-footer{position:sticky;bottom:0;z-index:2}
+.small{font-size:.9rem;opacity:.8}
 @media (max-width:768px){#setupScreen h1{font-size:2rem}.degree-question{font-size:2.2rem}.score-breakdown{grid-template-columns:1fr}}
 </style>
 </head>
@@ -76,7 +77,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
   <!-- Setup -->
   <div id="setupScreen" class="screen active">
     <h1>🎹 Scale Degree Trainer</h1>
-    <div class="version-badge" id="versionBadge">v6.6 • iOS Boost + Back Fix</div>
+    <div class="version-badge" id="versionBadge">v6.8.2 • Desktop quiz fix</div>
     <p class="subtitle">Impara i gradi delle scale maggiori</p>
 
     <div class="setup-section">
@@ -92,22 +93,45 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
 
     <div id="mobileWarning" class="info-box warning-box" style="display:none;max-width:420px;">
       <h3>⚠️ iPhone/iPad rilevato</h3>
-      <p>Se non compare la frequenza: aumenta “Volume Minimo” e tieni la nota per ~500 ms. In caso estremo chiudi/riapri la PWA e consenti il microfono.</p>
+      <p>Se non compare la frequenza: apri <em>Calibrazione</em>, abbassa “Volume Minimo” o avvicina il microfono.</p>
     </div>
 
     <div class="info-box" style="max-width:420px;">
-      <h3>Come funziona</h3>
-      <p>📝 Vedi un grado (es. “III di C maggiore”)</p>
-      <p>🎹 Suona la nota corrispondente</p>
-      <p>✅ Riconoscimento automatico</p>
-      <p>📊 30 domande</p>
+      <p>Serve una ripassata? Apri le istruzioni o vai in Calibrazione.</p>
     </div>
 
-    <button class="btn-primary" id="calibrationBtn" style="margin-bottom:12px;">⚙️ Calibrazione</button>
-    <button class="btn-primary" id="startBtn">Inizia Sessione</button>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+      <button class="btn-primary" id="instructionsBtn">📖 Istruzioni</button>
+      <button class="btn-primary" id="calibrationBtn">⚙️ Calibrazione</button>
+      <button class="btn-primary" id="startBtn">Inizia Sessione</button>
+    </div>
+    <div class="small" style="margin-top:10px;">Suggerimento: tieni la nota per ~500 ms.</div>
   </div>
 
-  <!-- Calibration -->
+  <!-- Istruzioni -->
+  <div id="instructionsScreen" class="screen">
+    <div style="text-align:center;margin-bottom:20px;">
+      <h1>📖 Istruzioni</h1>
+      <p class="subtitle">Come funziona Scale Degree Trainer</p>
+    </div>
+    <div class="info-box" style="max-width:720px;margin:0 auto 14px;">
+      <h3>Obiettivo</h3>
+      <p>Viene mostrato un <strong>grado</strong> (I–VII) di una scala maggiore. Suona la <strong>nota corrispondente</strong>.</p>
+    </div>
+    <div class="info-box" style="max-width:720px;margin:0 auto 14px;">
+      <h3>Sessione</h3>
+      <p>30 domande. Dopo ogni risposta appare “Corretto/Sbagliato”.</p>
+    </div>
+    <div class="info-box" style="max-width:720px;margin:0 auto 14px;">
+      <h3>Consigli</h3>
+      <p>Se il riconoscimento tarda, usa la Calibrazione e riduci la soglia Volume.</p>
+    </div>
+    <div style="text-align:center;max-width:500px;margin:10px auto 0;">
+      <button type="button" class="btn-primary" id="instrBackBtn" style="width:100%;background:rgba(255,255,255,.1);">← Torna alla Home</button>
+    </div>
+  </div>
+
+  <!-- Calibrazione -->
   <div id="calibrationScreen" class="screen">
     <div style="text-align:center;margin-bottom:24px;">
       <h1>⚙️ Calibrazione</h1>
@@ -123,8 +147,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
       </div>
 
       <div class="slider-group">
-        <div class="slider-label"><span>Volume Minimo</span><span class="slider-value" id="volumeValue">0.03</span></div>
-        <input type="range" min="0.02" max="0.50" step="0.01" value="0.03" class="slider" id="volumeSlider">
+        <div class="slider-label"><span>Volume Minimo</span><span class="slider-value" id="volumeValue">0.015</span></div>
+        <input type="range" min="0.01" max="0.50" step="0.005" value="0.015" class="slider" id="volumeSlider">
       </div>
 
       <div class="slider-group">
@@ -133,8 +157,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
       </div>
 
       <div class="slider-group">
-        <div class="slider-label"><span>Picco Richiesto (vs media)</span><span class="slider-value" id="spikeValue">1.6x</span></div>
-        <input type="range" min="1.2" max="4.0" step="0.1" value="1.6" class="slider" id="spikeSlider">
+        <div class="slider-label"><span>Picco Richiesto (vs media)</span><span class="slider-value" id="spikeValue">1.4x</span></div>
+        <input type="range" min="1.2" max="4.0" step="0.1" value="1.4" class="slider" id="spikeSlider">
       </div>
 
       <div class="slider-group">
@@ -143,7 +167,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
       </div>
     </div>
 
-    <div class="question-card" style="max-width:500px;margin:0 auto 16px;">
+    <div class="question-card" style="max-width:500px;margin:0 auto 12px;">
       <h3 style="margin-bottom:12px;color:var(--text-secondary);">🎹 Test Riconoscimento</h3>
       <div class="degree-question" id="calibrationNote" style="font-size:3.2rem;margin:24px 0;">-</div>
       <div class="status-indicator" style="margin-top:12px;">
@@ -157,7 +181,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
 
     <div style="text-align:center;max-width:500px;margin:0 auto;">
       <button class="btn-primary" id="saveCalibrationBtn" style="width:100%;margin-bottom:8px;">💾 Salva Impostazioni</button>
-      <!-- fix: type="button" -->
       <button type="button" class="btn-primary" id="backFromCalibrationBtn" style="width:100%;background:rgba(255,255,255,.1);">← Torna alla Home</button>
     </div>
   </div>
@@ -179,18 +202,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
       <div class="status-text" id="statusText">In ascolto...</div>
     </div>
 
-    <div style="text-align:center;margin-top:14px;">
-      <button class="btn-primary" id="stopQuizBtn" style="background:rgba(244,67,54,.8);padding:10px 26px;font-size:1rem;">⏹️ Ferma Quiz</button>
-    </div>
-
-    <div id="volumeDebug" style="font-size:.9rem;color:var(--text-secondary);margin-top:10px;text-align:center;display:none;">
-      Volume: <span id="volumeValue2">0.000</span> • Freq: <span id="freqValue2">—</span> Hz • Gain: <span id="gainValue2">1.0</span>x
-    </div>
-
     <div id="resultCard" class="result-card" style="display:none;">
       <div class="result-icon" id="resultIcon">✓</div>
       <div class="result-title" id="resultTitle">Corretto!</div>
       <div class="result-details" id="resultDetails"></div>
+    </div>
+
+    <div class="sticky-footer" style="text-align:center;margin-top:16px;">
+      <button class="btn-primary" id="stopQuizBtn" style="background:rgba(244,67,54,.9);padding:10px 26px;font-size:1rem;">⏹️ Ferma Quiz</button>
+      <div id="volumeDebug" style="font-size:.9rem;color:var(--text-secondary);margin-top:8px;">
+        Volume: <span id="volumeValue2">0.000</span> • Freq: <span id="freqValue2">—</span> Hz • Gain: <span id="gainValue2">1.0</span>x • Capturing: <span id="capValue">no</span>
+      </div>
     </div>
 
     <div id="finalScore" class="final-score" style="display:none;">
@@ -206,7 +228,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
 </div>
 
 <script>
-const APP_VERSION='v6.6';
+const APP_VERSION='v6.8.2';
+
 class IntervalTrainerApp{
   constructor(){
     this.selectedScale='RANDOM';
@@ -218,12 +241,12 @@ class IntervalTrainerApp{
     this.preGain=null; this.hp=null; this.lp=null; this.analyser=null; this.dataArray=null; this.scriptNode=null; this.muteNode=null;
     this.isListening=false;
 
-    // iOS
+    // Device paths
     this.isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
     this.useScriptNode=this.isIOS;
 
     // Tuning
-    this.volumeThreshold=0.03; this.requiredStableDetections=3; this.spikeMultiplier=1.6; this.cooldownPeriod=500;
+    this.volumeThreshold=0.015; this.requiredStableDetections=3; this.spikeMultiplier=1.4; this.cooldownPeriod=500;
 
     // State
     this.currentVolume=0; this.noteStabilityBuffer=[];
@@ -231,7 +254,9 @@ class IntervalTrainerApp{
     this.volumeHistory=[]; this.maxVolumeHistory=15; this.lastNoteTime=0;
     this.silenceFramesRequired=2; this.currentSilenceFrames=0; this.readyForNextNote=true;
     this.minPianoFreq=25; this.maxPianoFreq=4200;
-    this.detectedNotes=[]; this.minDetections=4;
+
+    // Solo quiz desktop: stato cattura basato su soglia (no spike)
+    this.isCapturing=false;
 
     this.degreeNames=['I','II','III','IV','V','VI','VII'];
     this.scales={
@@ -245,25 +270,17 @@ class IntervalTrainerApp{
   }
 
   initEventListeners(){
-    const scaleSelect=document.getElementById('scaleSelect');
-    scaleSelect.addEventListener('change',()=>{this.selectedScale=scaleSelect.value});
-    document.getElementById('calibrationBtn').addEventListener('click',()=>this.openCalibration());
-    document.getElementById('saveCalibrationBtn').addEventListener('click',()=>this.saveCalibration());
-
-    // FIX: listener robusto per il ritorno alla home
-    document.getElementById('backFromCalibrationBtn').addEventListener('click', async (e)=>{
-      e.preventDefault(); e.stopPropagation();
-      await this.backFromCalibration();
-    });
-
-    document.getElementById('stopQuizBtn').addEventListener('click',()=>this.stopQuiz());
-    document.getElementById('startBtn').addEventListener('click',()=>this.startQuiz());
-    document.getElementById('restartBtn').addEventListener('click',()=>this.restart());
-    document.getElementById('presetDesktop').addEventListener('click',()=>this.applyPreset('desktop'));
-    document.getElementById('presetMobile').addEventListener('click',()=>this.applyPreset('mobile'));
-    document.getElementById('presetCustom').addEventListener('click',()=>this.applyPreset('custom'));
-
-    // iOS: resume dopo tap
+    const qs=(id)=>document.getElementById(id);
+    qs('scaleSelect').addEventListener('change',e=>this.selectedScale=e.target.value);
+    qs('instructionsBtn').addEventListener('click',()=>this.show('instructionsScreen'));
+    qs('instrBackBtn').addEventListener('click',()=>this.show('setupScreen'));
+    qs('calibrationBtn').addEventListener('click',()=>this.openCalibration());
+    qs('saveCalibrationBtn').addEventListener('click',()=>this.saveCalibration());
+    qs('backFromCalibrationBtn').addEventListener('click', async (e)=>{ e.preventDefault(); e.stopPropagation(); await this.backFromCalibration(); });
+    qs('startBtn').addEventListener('click',()=>this.startQuiz());
+    qs('stopQuizBtn').addEventListener('click',()=>this.stopQuiz());
+    qs('restartBtn').addEventListener('click',()=>this.restart());
+    // iOS resume
     document.body.addEventListener('touchend',async()=>{
       if(this.audioContext && this.audioContext.state==='suspended'){ try{await this.audioContext.resume()}catch(_){ } }
     },{passive:true});
@@ -271,54 +288,52 @@ class IntervalTrainerApp{
 
   initSliders(){
     const setVal=(id,val,fmt=v=>v)=>{document.getElementById(id).textContent=fmt(val)};
-    const vol=document.getElementById('volumeSlider'), stab=document.getElementById('stabilitySlider'),
-          spike=document.getElementById('spikeSlider'), cool=document.getElementById('cooldownSlider');
-    vol.addEventListener('input',e=>{const v=parseFloat(e.target.value); setVal('volumeValue',v,v=>v.toFixed(2)); this.volumeThreshold=v; this.activateCustomPreset()});
-    stab.addEventListener('input',e=>{const v=parseInt(e.target.value); setVal('stabilityValue',v); this.requiredStableDetections=v; this.activateCustomPreset()});
-    spike.addEventListener('input',e=>{const v=parseFloat(e.target.value); setVal('spikeValue',v,v=>v.toFixed(1)+'x'); this.spikeMultiplier=v; this.activateCustomPreset()});
-    cool.addEventListener('input',e=>{const v=parseInt(e.target.value); setVal('cooldownValue',v); this.cooldownPeriod=v; this.activateCustomPreset()});
+    const vol=qs('volumeSlider'), stab=qs('stabilitySlider'), spike=qs('spikeSlider'), cool=qs('cooldownSlider');
+    function qs(id){return document.getElementById(id);}
+    vol.addEventListener('input',e=>{const v=parseFloat(e.target.value); setVal('volumeValue',v,v=>v.toFixed(3)); this.volumeThreshold=v; });
+    stab.addEventListener('input',e=>{const v=parseInt(e.target.value); setVal('stabilityValue',v); this.requiredStableDetections=v; });
+    spike.addEventListener('input',e=>{const v=parseFloat(e.target.value); setVal('spikeValue',v,v=>v.toFixed(1)+'x'); this.spikeMultiplier=v; });
+    cool.addEventListener('input',e=>{const v=parseInt(e.target.value); setVal('cooldownValue',v); this.cooldownPeriod=v; });
+    document.getElementById('presetDesktop').addEventListener('click',()=>{
+      vol.value=0.015; stab.value=3; spike.value=1.4; cool.value=500;
+      setVal('volumeValue',0.015,v=>v.toFixed(3)); setVal('stabilityValue',3); setVal('spikeValue',1.4,v=>v.toFixed(1)+'x'); setVal('cooldownValue',500);
+      this.volumeThreshold=0.015; this.requiredStableDetections=3; this.spikeMultiplier=1.4; this.cooldownPeriod=500;
+      document.querySelectorAll('.btn-preset').forEach(b=>b.classList.remove('active')); document.getElementById('presetDesktop').classList.add('active');
+    });
+    document.getElementById('presetMobile').addEventListener('click',()=>{
+      vol.value=0.05; stab.value=4; spike.value=1.8; cool.value=700;
+      setVal('volumeValue',0.05,v=>v.toFixed(3)); setVal('stabilityValue',4); setVal('spikeValue',1.8,v=>v.toFixed(1)+'x'); setVal('cooldownValue',700);
+      this.volumeThreshold=0.05; this.requiredStableDetections=4; this.spikeMultiplier=1.8; this.cooldownPeriod=700;
+      document.querySelectorAll('.btn-preset').forEach(b=>b.classList.remove('active')); document.getElementById('presetMobile').classList.add('active');
+    });
+    document.getElementById('presetCustom').addEventListener('click',()=>{
+      document.querySelectorAll('.btn-preset').forEach(b=>b.classList.remove('active')); document.getElementById('presetCustom').classList.add('active');
+    });
   }
 
-  activateCustomPreset(){ document.querySelectorAll('.btn-preset').forEach(b=>b.classList.remove('active')); document.getElementById('presetCustom').classList.add('active') }
-
-  applyPreset(p){
-    const setSlider=(id,val,labelFmt=(v)=>String(v))=>{const el=document.getElementById(id); el.value=val; document.getElementById(id.replace('Slider','Value')).textContent=labelFmt(val)};
-    document.querySelectorAll('.btn-preset').forEach(b=>b.classList.remove('active'));
-    if(p==='desktop'){
-      setSlider('volumeSlider',0.03,v=>v.toFixed(2)); setSlider('stabilitySlider',3); setSlider('spikeSlider',1.6,v=>v.toFixed(1)+'x'); setSlider('cooldownSlider',500);
-      this.volumeThreshold=0.03; this.requiredStableDetections=3; this.spikeMultiplier=1.6; this.cooldownPeriod=500;
-      document.getElementById('presetDesktop').classList.add('active');
-    }else if(p==='mobile'){
-      setSlider('volumeSlider',0.05,v=>v.toFixed(2)); setSlider('stabilitySlider',4); setSlider('spikeSlider',1.8,v=>v.toFixed(1)+'x'); setSlider('cooldownSlider',700);
-      this.volumeThreshold=0.05; this.requiredStableDetections=4; this.spikeMultiplier=1.8; this.cooldownPeriod=700;
-      document.getElementById('presetMobile').classList.add('active');
-    }else{
-      document.getElementById('presetCustom').classList.add('active');
-    }
+  show(id){
+    ['setupScreen','instructionsScreen','calibrationScreen','quizScreen'].forEach(s=>{
+      const el=document.getElementById(s);
+      if(s===id){ el.classList.add('active'); el.style.display='flex'; }
+      else{ el.classList.remove('active'); el.style.display='none'; }
+    });
   }
 
   async ensureAudioContext(){
     if(!this.audioContext){ this.audioContext=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'}); }
     if(this.audioContext.state==='suspended'){ try{await this.audioContext.resume()}catch(_){ } }
   }
-
   async getStream(){
-    if(/iPad|iPhone|iPod/.test(navigator.userAgent)){
-      return navigator.mediaDevices.getUserMedia({
-        audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true, channelCount:1, sampleRate:{ideal:48000} }
-      });
+    if(this.isIOS){
+      return navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:1,sampleRate:{ideal:48000}}});
     }else{
-      return navigator.mediaDevices.getUserMedia({
-        audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false, channelCount:1 }
-      });
+      return navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1}});
     }
   }
-
   async buildAudioChain(stream){
     await this.ensureAudioContext();
-
     this.preGain=this.audioContext.createGain();
-    this.preGain.gain.value=/iPad|iPhone|iPod/.test(navigator.userAgent)?4.0:1.0;
+    this.preGain.gain.value=this.isIOS?4.0:1.0;
 
     this.hp=this.audioContext.createBiquadFilter(); this.hp.type='highpass'; this.hp.frequency.value=30;
     this.lp=this.audioContext.createBiquadFilter(); this.lp.type='lowpass';  this.lp.frequency.value=4200;
@@ -329,334 +344,157 @@ class IntervalTrainerApp{
       const bufSize=4096;
       this.scriptNode=(this.audioContext.createScriptProcessor||this.audioContext.createJavaScriptNode).call(this.audioContext,bufSize,1,1);
       this.muteNode=this.audioContext.createGain(); this.muteNode.gain.value=0;
-
       source.connect(this.preGain); this.preGain.connect(this.hp); this.hp.connect(this.lp); this.lp.connect(this.scriptNode);
       this.scriptNode.connect(this.muteNode); this.muteNode.connect(this.audioContext.destination);
-
-      this.scriptNode.onaudioprocess=(e)=>{
-        const ch=e.inputBuffer.getChannelData(0);
-        const isCalibration=document.getElementById('calibrationScreen').classList.contains('active');
-        this.processAudioBlock(ch,this.audioContext.sampleRate,isCalibration);
-      };
-
+      this.scriptNode.onaudioprocess=(e)=>{ const ch=e.inputBuffer.getChannelData(0); const inCal=document.getElementById('calibrationScreen').classList.contains('active'); this.processAudioBlock(ch,this.audioContext.sampleRate,inCal); };
       this.analyser=null; this.dataArray=null;
     }else{
-      this.analyser=this.audioContext.createAnalyser();
-      this.analyser.fftSize=8192; this.analyser.smoothingTimeConstant=0.2;
+      this.analyser=this.audioContext.createAnalyser(); this.analyser.fftSize=8192; this.analyser.smoothingTimeConstant=0.2;
       source.connect(this.preGain); this.preGain.connect(this.hp); this.hp.connect(this.lp); this.lp.connect(this.analyser);
       this.dataArray=new Float32Array(this.analyser.fftSize);
     }
   }
 
+  // --- iOS path (ScriptProcessor) — mantengo spike
   processAudioBlock(buffer,sampleRate,isCalibration){
     let sum=0; for(let i=0;i<buffer.length;i++) sum+=buffer[i]*buffer[i];
     let rms=Math.sqrt(sum/buffer.length); this.currentVolume=rms;
 
-    // Boost adattivo (max 10x) se segnale piatto
+    // auto-gain
     if(this.preGain){
-      if(rms<0.003 && this.preGain.gain.value<10){ this.preGain.gain.value=Math.min(10, this.preGain.gain.value*1.5); }
-      if(rms>0.04 && this.preGain.gain.value>1){ this.preGain.gain.value=Math.max(1, this.preGain.gain.value/1.2); }
+      if(rms<0.003 && this.preGain.gain.value<10){ this.preGain.gain.value=Math.min(10,this.preGain.gain.value*1.5); }
+      if(rms>0.04 && this.preGain.gain.value>1){ this.preGain.gain.value=Math.max(1,this.preGain.gain.value/1.2); }
     }
 
-    const g=(this.preGain?this.preGain.gain.value:1).toFixed(1);
-    if(isCalibration){
-      const v=document.getElementById('calibrationVolumeValue'); if(v) v.textContent=rms.toFixed(3);
-      const gv=document.getElementById('gainValue'); if(gv) gv.textContent=g;
-    }else{
-      const v2=document.getElementById('volumeValue2'); if(v2) v2.textContent=rms.toFixed(3);
-      const gv2=document.getElementById('gainValue2'); if(gv2) gv2.textContent=g;
-    }
+    this.updateDebugUI(isCalibration,rms,(this.preGain?this.preGain.gain.value:1));
+    if(!this.warmupReady()) return;
 
-    if(!this.warmupStartTime) this.warmupStartTime=Date.now();
-    if(Date.now()-this.warmupStartTime<this.warmupDuration) return;
-
-    this.volumeHistory.push(rms); if(this.volumeHistory.length>this.maxVolumeHistory) this.volumeHistory.shift();
-    const avg=this.volumeHistory.reduce((a,b)=>a+b,0)/this.volumeHistory.length;
+    this.updateVolumeHistory(rms);
+    const avg=this.avgVolume();
 
     const silenceThreshold=this.volumeThreshold*0.5;
-    if(rms<silenceThreshold){
-      this.currentSilenceFrames++;
-      if(this.currentSilenceFrames>=this.silenceFramesRequired){
-        this.readyForNextNote=true;
-        if(isCalibration){ const d=document.getElementById('calibrationVolumeDot'); if(d) d.classList.remove('active'); const s=document.getElementById('calibrationStatus'); if(s) s.textContent='Suona una nota per testare...'; }
-        else{ const d=document.getElementById('volumeDot'); if(d) d.classList.remove('active'); }
-      }
-    }else{ this.currentSilenceFrames=0; }
+    this.updateSilence(rms,silenceThreshold,isCalibration);
 
     const inCooldown=(Date.now()-this.lastNoteTime)<this.cooldownPeriod;
-    const spike=isCalibration ? (rms>this.volumeThreshold) : (rms>(avg*this.spikeMultiplier) || rms>(this.volumeThreshold*1.05));
-    const ok=(rms>this.volumeThreshold)&&!inCooldown&&this.readyForNextNote&&spike;
+    const spike=isCalibration ? (rms>this.volumeThreshold) : ((rms>(avg*this.spikeMultiplier)) || (rms>(this.volumeThreshold*1.05)));
+    const ok=(rms>this.volumeThreshold)&&!inCooldown&&this.readyForNextNote&&(spike || this.noteStabilityBuffer.length>0);
     if(!ok) return;
 
     const freq=this.yinPitch(buffer,sampleRate);
-    if(isCalibration){ const f=document.getElementById('calibrationFreqValue'); if(f) f.textContent=(freq>0?freq.toFixed(1):'—'); }
-    else{ const f2=document.getElementById('freqValue2'); if(f2) f2.textContent=(freq>0?freq.toFixed(1):'—'); }
-
-    if(freq>this.minPianoFreq && freq<this.maxPianoFreq){
-      const note=this.frequencyToNote(freq);
-      if(note){
-        if(isCalibration){
-          const dot=document.getElementById('calibrationVolumeDot'); if(dot) dot.classList.add('active');
-          const st=document.getElementById('calibrationStatus'); if(st) st.textContent='Rilevamento in corso...';
-        }else{
-          const dot=document.getElementById('volumeDot'); if(dot) dot.classList.add('active');
-        }
-
-        this.noteStabilityBuffer.push(note);
-        if(this.noteStabilityBuffer.length>this.requiredStableDetections) this.noteStabilityBuffer.shift();
-
-        const stable=this.noteStabilityBuffer.length===this.requiredStableDetections && this.noteStabilityBuffer.every(n=>n===this.noteStabilityBuffer[0]);
-        if(stable){
-          if(isCalibration){
-            const nEl=document.getElementById('calibrationNote'); if(nEl) nEl.textContent=note;
-            const st=document.getElementById('calibrationStatus'); if(st) st.textContent=`✓ Nota rilevata: ${note}`;
-            this.noteStabilityBuffer=[]; this.readyForNextNote=false; this.lastNoteTime=Date.now();
-          }else{
-            this.detectedNotes.push(note);
-            if(this.detectedNotes.length>=this.minDetections){
-              const finalNote=this.getMostFrequentNote(this.detectedNotes);
-              this.evaluateAnswer(finalNote);
-              this.detectedNotes=[]; this.noteStabilityBuffer=[]; this.readyForNextNote=false; this.lastNoteTime=Date.now();
-            }
-          }
-        }
-      }
-    }
+    this.updateFreqUI(isCalibration,freq);
+    if(freq>this.minPianoFreq && freq<this.maxPianoFreq){ this.handleStableNote(freq,isCalibration); }
   }
 
-  async openCalibration(){
-    this.detectedNotes=[]; this.noteStabilityBuffer=[]; this.volumeHistory=[];
-    this.currentSilenceFrames=0; this.readyForNextNote=true; this.lastNoteTime=0; this.warmupStartTime=null;
-
-    document.getElementById('setupScreen').classList.remove('active');
-    document.getElementById('calibrationScreen').classList.add('active');
-
-    this.volumeThreshold=parseFloat(document.getElementById('volumeSlider').value);
-    this.requiredStableDetections=parseInt(document.getElementById('stabilitySlider').value);
-    this.spikeMultiplier=parseFloat(document.getElementById('spikeSlider').value);
-    this.cooldownPeriod=parseInt(document.getElementById('cooldownSlider').value);
-
-    await this.setupAudioForCalibration();
-  }
-
-  async setupAudioForCalibration(){
-    try{
-      const stream=await this.getStream();
-      this.stream=stream; await this.buildAudioChain(stream);
-      this.isListening=true; this.warmupStartTime=Date.now();
-      if(!this.useScriptNode) this.detectCalibrationPitch();
-    }catch(err){
-      console.error('Mic error (calibration):',err); alert('Impossibile accedere al microfono. Controlla i permessi in Impostazioni / Safari / Microfono, poi riapri la PWA.');
-    }
-  }
-
+  // --- Desktop Calibration (Analyser)
   detectCalibrationPitch(){
     if(!this.isListening || this.useScriptNode) return;
     this.analyser.getFloatTimeDomainData(this.dataArray);
+    const rms=this.computeRms(this.dataArray); this.currentVolume=rms;
 
-    let sum=0; for(let i=0;i<this.dataArray.length;i++) sum+=this.dataArray[i]*this.dataArray[i];
-    const rms=Math.sqrt(sum/this.dataArray.length); this.currentVolume=rms;
-    const v=document.getElementById('calibrationVolumeValue'); if(v) v.textContent=rms.toFixed(3);
-    const gv=document.getElementById('gainValue'); if(gv) gv.textContent=(this.preGain?this.preGain.gain.value:1).toFixed(1);
+    if(this.preGain){
+      if(rms<0.003 && this.preGain.gain.value<10){ this.preGain.gain.value=Math.min(10,this.preGain.gain.value*1.5); }
+      if(rms>0.04 && this.preGain.gain.value>1){ this.preGain.gain.value=Math.max(1,this.preGain.gain.value/1.2); }
+    }
 
-    if(Date.now()-this.warmupStartTime<this.warmupDuration){ requestAnimationFrame(()=>this.detectCalibrationPitch()); return; }
+    this.updateDebugUI(true,rms,(this.preGain?this.preGain.gain.value:1));
+    if(!this.warmupReady()){ requestAnimationFrame(()=>this.detectCalibrationPitch()); return; }
 
-    this.volumeHistory.push(rms); if(this.volumeHistory.length>this.maxVolumeHistory) this.volumeHistory.shift();
-    const avg=this.volumeHistory.reduce((a,b)=>a+b,0)/this.volumeHistory.length;
-
-    const silenceThreshold=this.volumeThreshold*0.5;
-    if(rms<silenceThreshold){ this.currentSilenceFrames++; if(this.currentSilenceFrames>=this.silenceFramesRequired){ this.readyForNextNote=true; const d=document.getElementById('calibrationVolumeDot'); if(d) d.classList.remove('active'); const s=document.getElementById('calibrationStatus'); if(s) s.textContent='Suona una nota per testare...'; } }
-    else this.currentSilenceFrames=0;
+    this.updateVolumeHistory(rms);
+    this.updateSilence(rms,this.volumeThreshold*0.5,true);
 
     const inCooldown=(Date.now()-this.lastNoteTime)<this.cooldownPeriod;
     const ok=(rms>this.volumeThreshold)&&!inCooldown&&this.readyForNextNote;
     if(ok){
-      const d=document.getElementById('calibrationVolumeDot'); if(d) d.classList.add('active');
-      const s=document.getElementById('calibrationStatus'); if(s) s.textContent='Rilevamento in corso...';
       const freq=this.yinPitch(this.dataArray,this.audioContext.sampleRate);
-      const f=document.getElementById('calibrationFreqValue'); if(f) f.textContent=(freq>0?freq.toFixed(1):'—');
-      if(freq>this.minPianoFreq && freq<this.maxPianoFreq){
-        const note=this.frequencyToNote(freq);
-        if(note){
-          this.noteStabilityBuffer.push(note);
-          if(this.noteStabilityBuffer.length>this.requiredStableDetections) this.noteStabilityBuffer.shift();
-          const stable=this.noteStabilityBuffer.length===this.requiredStableDetections && this.noteStabilityBuffer.every(n=>n===this.noteStabilityBuffer[0]);
-          if(stable){
-            const nEl=document.getElementById('calibrationNote'); if(nEl) nEl.textContent=note;
-            const st=document.getElementById('calibrationStatus'); if(st) st.textContent=`✓ Nota rilevata: ${note}`;
-            this.noteStabilityBuffer=[]; this.readyForNextNote=false; this.lastNoteTime=Date.now();
-          }
-        }
-      }
+      this.updateFreqUI(true,freq);
+      if(freq>this.minPianoFreq && freq<this.maxPianoFreq){ this.handleStableNote(freq,true); }
     }
     requestAnimationFrame(()=>this.detectCalibrationPitch());
   }
 
-  saveCalibration(){
-    // chiusura “soft”, torni alla home ma senza attendere close() bloccanti
-    this.isListening=false;
-    if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; }
-    for(const n of [this.scriptNode,this.muteNode,this.lp,this.hp,this.preGain]){ try{ n && n.disconnect && n.disconnect(); }catch(_){} }
-    this.scriptNode=this.muteNode=this.lp=this.hp=this.preGain=null;
-    if(this.audioContext){ try{ this.audioContext.close(); }catch(_){} this.audioContext=null; }
-
-    this.volumeThreshold=parseFloat(document.getElementById('volumeSlider').value);
-    this.requiredStableDetections=parseInt(document.getElementById('stabilitySlider').value);
-    this.spikeMultiplier=parseFloat(document.getElementById('spikeSlider').value);
-    this.cooldownPeriod=parseInt(document.getElementById('cooldownSlider').value);
-
-    this.noteStabilityBuffer=[]; this.volumeHistory=[]; this.currentSilenceFrames=0; this.readyForNextNote=true;
-
-    const cal=document.getElementById('calibrationScreen');
-    const home=document.getElementById('setupScreen');
-    cal.classList.remove('active'); home.classList.add('active');
-    cal.style.display='none'; home.style.display='flex';
-    const n=document.getElementById('calibrationNote'); if(n) n.textContent='-';
-  }
-
-  async backFromCalibration(){
-    try{
-      this.isListening=false;
-      if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; }
-      for(const n of [this.scriptNode,this.muteNode,this.lp,this.hp,this.preGain]){ try{ n && n.disconnect && n.disconnect(); }catch(_){} }
-      this.scriptNode=this.muteNode=this.lp=this.hp=this.preGain=null;
-      if(this.audioContext){ try{ await this.audioContext.close(); }catch(_){} this.audioContext=null; }
-    }finally{
-      this.noteStabilityBuffer=[]; this.volumeHistory=[]; this.currentSilenceFrames=0; this.readyForNextNote=true;
-      const cal=document.getElementById('calibrationScreen');
-      const home=document.getElementById('setupScreen');
-      cal.classList.remove('active'); home.classList.add('active');
-      cal.style.display='none'; home.style.display='flex';
-      const n=document.getElementById('calibrationNote'); if(n) n.textContent='-';
-    }
-  }
-
-  async startQuiz(){
-    document.getElementById('setupScreen').classList.remove('active');
-    document.getElementById('quizScreen').classList.add('active');
-    await this.setupAudio();
-    this.generateQuestion();
-  }
-
-  async setupAudio(){
-    try{
-      const stream=await this.getStream();
-      this.stream=stream; await this.buildAudioChain(stream);
-      this.isListening=true; this.warmupStartTime=Date.now();
-      if(!this.useScriptNode) this.detectPitch();
-    }catch(err){
-      console.error('Mic error (quiz):',err); alert('Impossibile accedere al microfono. Controlla i permessi del sito/PWA.');
-    }
-  }
-
-  stopQuiz(){
-    this.isListening=false;
-    if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; }
-    for(const n of [this.scriptNode,this.muteNode,this.lp,this.hp,this.preGain]){ try{ n && n.disconnect && n.disconnect(); }catch(_){} }
-    this.scriptNode=this.muteNode=this.lp=this.hp=this.preGain=null;
-    if(this.audioContext){ try{ this.audioContext.close(); }catch(_){} this.audioContext=null; }
-
-    this.currentQuestion=0; this.correctAnswers=0; this.detectedNotes=[]; this.noteStabilityBuffer=[]; this.volumeHistory=[];
-    document.getElementById('quizScreen').classList.remove('active');
-    document.getElementById('setupScreen').classList.add('active');
-    document.getElementById('resultCard').style.display='none';
-    document.getElementById('finalScore').style.display='none';
-  }
-
-  generateQuestion(){
-    this.detectedNotes=[]; this.noteStabilityBuffer=[]; this.currentSilenceFrames=0; this.readyForNextNote=true;
-    document.getElementById('resultCard').style.display='none';
-    document.getElementById('statusText').textContent='In ascolto...';
-    document.getElementById('volumeDot').classList.remove('active');
-
-    if(this.selectedScale==='RANDOM'){ const keys=Object.keys(this.scales); this.currentScale=keys[Math.floor(Math.random()*keys.length)]; }
-    else this.currentScale=this.selectedScale;
-
-    let d; do{ d=Math.floor(Math.random()*7) }while(d===this.lastDegree);
-    this.lastDegree=d; this.currentDegree=d;
-
-    document.getElementById('scaleDisplay').textContent=`${this.currentScale} Maggiore`;
-    document.getElementById('degreeQuestion').textContent=this.degreeNames[this.currentDegree];
-    document.getElementById('currentQuestion').textContent=this.currentQuestion+1;
-  }
-
+  // --- Desktop Quiz (Analyser) — NIENTE spike, solo soglia + stato cattura
   detectPitch(){
     if(!this.isListening || this.useScriptNode) return;
     this.analyser.getFloatTimeDomainData(this.dataArray);
+    const rms=this.computeRms(this.dataArray); this.currentVolume=rms;
 
-    let s=0; for(let i=0;i<this.dataArray.length;i++) s+=this.dataArray[i]*this.dataArray[i];
-    const rms=Math.sqrt(s/this.dataArray.length); this.currentVolume=rms;
+    if(this.preGain){
+      if(rms<0.003 && this.preGain.gain.value<10){ this.preGain.gain.value=Math.min(10,this.preGain.gain.value*1.5); }
+      if(rms>0.04 && this.preGain.gain.value>1){ this.preGain.gain.value=Math.max(1,this.preGain.gain.value/1.2); }
+    }
 
-    const v2=document.getElementById('volumeValue2'); if(v2) v2.textContent=rms.toFixed(3);
-    const gv2=document.getElementById('gainValue2'); if(gv2) gv2.textContent=(this.preGain?this.preGain.gain.value:1).toFixed(1);
+    if(!this.warmupReady()){ this.updateDebugUI(false,rms,(this.preGain?this.preGain.gain.value:1)); requestAnimationFrame(()=>this.detectPitch()); return; }
 
-    this.volumeHistory.push(rms); if(this.volumeHistory.length>this.maxVolumeHistory) this.volumeHistory.shift();
-    const avg=this.volumeHistory.reduce((a,b)=>a+b,0)/this.volumeHistory.length;
+    // Gestione cattura
+    const capBefore=this.isCapturing;
+    if(!this.isCapturing && rms > this.volumeThreshold && this.readyForNextNote && (Date.now()-this.lastNoteTime)>=this.cooldownPeriod){
+      this.isCapturing = true; this.noteStabilityBuffer = [];
+    }
+    if(this.isCapturing && rms < this.volumeThreshold*0.6){
+      this.isCapturing = false; this.noteStabilityBuffer = [];
+    }
+    const capEl=document.getElementById('capValue'); if(capEl) capEl.textContent=this.isCapturing?'sì':'no';
 
-    if(Date.now()-this.warmupStartTime<this.warmupDuration){ requestAnimationFrame(()=>this.detectPitch()); return; }
+    this.updateDebugUI(false,rms,(this.preGain?this.preGain.gain.value:1));
+    this.updateFreqUI(false,'—');
 
-    const spike = rms>(avg*this.spikeMultiplier) || rms>(this.volumeThreshold*1.05);
-
-    const silenceThreshold=this.volumeThreshold*0.5;
-    if(rms<silenceThreshold){ this.currentSilenceFrames++; if(this.currentSilenceFrames>=this.silenceFramesRequired){ this.readyForNextNote=true; const d=document.getElementById('volumeDot'); if(d) d.classList.remove('active'); } }
-    else this.currentSilenceFrames=0;
-
-    const inCooldown=(Date.now()-this.lastNoteTime)<this.cooldownPeriod;
-    const checksOk=(rms>this.volumeThreshold) && spike && this.readyForNextNote && !inCooldown;
-
-    if(checksOk){
-      const d=document.getElementById('volumeDot'); if(d) d.classList.add('active');
+    if(this.isCapturing){
       const freq=this.yinPitch(this.dataArray,this.audioContext.sampleRate);
-      const f2=document.getElementById('freqValue2'); if(f2) f2.textContent=(freq>0?freq.toFixed(1):'—');
-
       if(freq>this.minPianoFreq && freq<this.maxPianoFreq){
-        const note=this.frequencyToNote(freq);
-        if(note){
-          this.noteStabilityBuffer.push(note);
-          if(this.noteStabilityBuffer.length>this.requiredStableDetections) this.noteStabilityBuffer.shift();
-          const allSame=this.noteStabilityBuffer.length===this.requiredStableDetections && this.noteStabilityBuffer.every(n=>n===this.noteStabilityBuffer[0]);
-          if(allSame){
-            this.detectedNotes.push(note);
-            if(this.detectedNotes.length>=this.minDetections){
-              const finalNote=this.getMostFrequentNote(this.detectedNotes);
-              this.evaluateAnswer(finalNote);
-              this.detectedNotes=[]; this.noteStabilityBuffer=[]; this.readyForNextNote=false; this.lastNoteTime=Date.now();
-            }
-          }
-        }
+        this.updateFreqUI(false,freq);
+        this.handleStableNote(freq,false);
       }
     }
     requestAnimationFrame(()=>this.detectPitch());
+  }
+
+  // --- helpers
+  computeRms(buf){ let s=0; for(let i=0;i<buf.length;i++) s+=buf[i]*buf[i]; return Math.sqrt(s/buf.length); }
+  warmupReady(){ if(!this.warmupStartTime) this.warmupStartTime=Date.now(); return (Date.now()-this.warmupStartTime)>=this.warmupDuration; }
+  updateVolumeHistory(rms){ this.volumeHistory.push(rms); if(this.volumeHistory.length>this.maxVolumeHistory) this.volumeHistory.shift(); }
+  avgVolume(){ return this.volumeHistory.reduce((a,b)=>a+b,0)/this.volumeHistory.length; }
+  updateSilence(rms,thr,isCal){
+    if(rms<thr){ this.currentSilenceFrames++; if(this.currentSilenceFrames>=this.silenceFramesRequired){ this.readyForNextNote=true; const d=isCal?document.getElementById('calibrationVolumeDot'):document.getElementById('volumeDot'); if(d) d.classList.remove('active'); if(isCal){ const s=document.getElementById('calibrationStatus'); if(s) s.textContent='Suona una nota per testare...'; } } }
+    else this.currentSilenceFrames=0;
+  }
+  updateDebugUI(isCal,rms,gain){
+    if(isCal){ const v=document.getElementById('calibrationVolumeValue'); if(v) v.textContent=rms.toFixed(3); const gv=document.getElementById('gainValue'); if(gv) gv.textContent=gain.toFixed(1); }
+    else{ const v2=document.getElementById('volumeValue2'); if(v2) v2.textContent=rms.toFixed(3); const gv2=document.getElementById('gainValue2'); if(gv2) gv2.textContent=gain.toFixed(1); }
+  }
+  updateFreqUI(isCal,freq){ const txt=(typeof freq==='number' ? (freq>0?freq.toFixed(1):'—') : freq); if(isCal){ const f=document.getElementById('calibrationFreqValue'); if(f) f.textContent=txt; } else { const f2=document.getElementById('freqValue2'); if(f2) f2.textContent=txt; } }
+
+  handleStableNote(freq,isCal){
+    const note=this.frequencyToNote(freq); if(!note) return;
+    const dot=isCal?document.getElementById('calibrationVolumeDot'):document.getElementById('volumeDot'); if(dot) dot.classList.add('active');
+    if(isCal){ const st=document.getElementById('calibrationStatus'); if(st) st.textContent='Rilevamento in corso...'; }
+    this.noteStabilityBuffer.push(note);
+    if(this.noteStabilityBuffer.length>this.requiredStableDetections) this.noteStabilityBuffer.shift();
+    const stable=this.noteStabilityBuffer.length===this.requiredStableDetections && this.noteStabilityBuffer.every(n=>n===this.noteStabilityBuffer[0]);
+    if(!stable) return;
+
+    if(isCal){
+      const nEl=document.getElementById('calibrationNote'); if(nEl) nEl.textContent=note;
+      const st=document.getElementById('calibrationStatus'); if(st) st.textContent=`✓ Nota rilevata: ${note}`;
+      this.noteStabilityBuffer=[]; this.readyForNextNote=false; this.lastNoteTime=Date.now();
+    }else{
+      const finalNote=this.noteStabilityBuffer[0];
+      this.evaluateAnswer(finalNote);
+      this.noteStabilityBuffer=[]; this.readyForNextNote=false; this.lastNoteTime=Date.now();
+      this.isCapturing=false; // chiudi cattura finché non torna sotto soglia
+    }
   }
 
   yinPitch(buffer,sampleRate){
     const threshold=0.15, probabilityThreshold=0.1;
     const yinLen=Math.floor(buffer.length/2);
     const yin=new Float32Array(yinLen);
-
-    for(let tau=1;tau<yinLen;tau++){
-      let sum=0; for(let i=0;i<yinLen;i++){ const d=buffer[i]-buffer[i+tau]; sum+=d*d; }
-      yin[tau]=sum;
-    }
-    yin[0]=1;
-    let run=0;
+    for(let tau=1;tau<yinLen;tau++){ let sum=0; for(let i=0;i<yinLen;i++){ const d=buffer[i]-buffer[i+tau]; sum+=d*d; } yin[tau]=sum; }
+    yin[0]=1; let run=0;
     for(let tau=1;tau<yinLen;tau++){ run+=yin[tau]; yin[tau]=yin[tau]*tau/run; }
-
     let tauEst=-1;
-    for(let tau=2;tau<yinLen;tau++){
-      if(yin[tau]<threshold){
-        while(tau+1<yinLen && yin[tau+1]<yin[tau]) tau++;
-        tauEst=tau; break;
-      }
-    }
-    if(tauEst===-1){
-      let min=Infinity, idx=-1;
-      for(let t=2;t<yinLen;t++){ if(yin[t]<min){min=yin[t]; idx=t;} }
-      if(idx===-1 || min>0.6) return -1;
-      tauEst=idx;
-    }
-    const x0=(tauEst<1)?tauEst:tauEst-1;
-    const x2=(tauEst+1<yinLen)?tauEst+1:tauEst;
+    for(let tau=2;tau<yinLen;tau++){ if(yin[tau]<threshold){ while(tau+1<yinLen && yin[tau+1]<yin[tau]) tau++; tauEst=tau; break; } }
+    if(tauEst===-1){ let min=Infinity, idx=-1; for(let t=2;t<yinLen;t++){ if(yin[t]<min){min=yin[t]; idx=t;} } if(idx===-1 || min>0.6) return -1; tauEst=idx; }
+    const x0=(tauEst<1)?tauEst:tauEst-1, x2=(tauEst+1<yinLen)?tauEst+1:tauEst;
     const s0=yin[x0], s1=yin[tauEst], s2=yin[x2];
     const betterTau=tauEst+(s2-s0)/(2*(2*s1 - s2 - s0));
     const freq=sampleRate/betterTau;
@@ -671,12 +509,6 @@ class IntervalTrainerApp{
     const names=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
     const n=Math.round(12*Math.log2(f/C0));
     return names[((n%12)+12)%12];
-  }
-
-  getMostFrequentNote(arr){
-    const m={}; let best=null, max=0;
-    for(const x of arr){ m[x]=(m[x]||0)+1; if(m[x]>max){max=m[x]; best=x;} }
-    return best;
   }
 
   evaluateAnswer(detected){
@@ -704,7 +536,12 @@ class IntervalTrainerApp{
       const played=detected?`<strong>${detected}</strong>`:'<em>non rilevata</em>';
       details.innerHTML=`Hai suonato: ${played}<br>Nota corretta: <strong>${expected}</strong><br>Grado ${this.degreeNames[this.currentDegree]} di ${this.currentScale} Maggiore`;
     }
-    setTimeout(()=>{ this.currentQuestion++; if(this.currentQuestion<this.totalQuestions){ this.generateQuestion(); } else { this.showFinalScore(); } }, 2000);
+    card.scrollIntoView({behavior:'smooth', block:'center'});
+    setTimeout(()=>{ 
+      this.currentQuestion++; 
+      if(this.currentQuestion<this.totalQuestions){ this.generateQuestion(); } 
+      else { this.showFinalScore(); } 
+    }, 1800);
   }
 
   showFinalScore(){
@@ -719,10 +556,50 @@ class IntervalTrainerApp{
     document.getElementById('wrongCount').textContent=this.totalQuestions-this.correctAnswers;
   }
 
+  async openCalibration(){ this.noteStabilityBuffer=[]; this.volumeHistory=[]; this.currentSilenceFrames=0; this.readyForNextNote=true; this.lastNoteTime=0; this.warmupStartTime=null; this.show('calibrationScreen'); await this.setupAudioForCalibration(); }
+  async setupAudioForCalibration(){
+    try{ const stream=await this.getStream(); this.stream=stream; await this.buildAudioChain(stream); this.isListening=true; this.warmupStartTime=Date.now(); if(!this.useScriptNode) this.detectCalibrationPitch();
+    }catch(err){ console.error('Mic error (calibration):',err); alert('Impossibile accedere al microfono. Controlla i permessi e riprova.'); }
+  }
+  saveCalibration(){ this.backFromCalibration(); }
+  async backFromCalibration(){
+    try{
+      this.isListening=false;
+      if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; }
+      for(const n of [this.scriptNode,this.muteNode,this.lp,this.hp,this.preGain]){ try{ n && n.disconnect && n.disconnect(); }catch(_){} }
+      this.scriptNode=this.muteNode=this.lp=this.hp=this.preGain=null;
+      if(this.audioContext){ try{ await this.audioContext.close(); }catch(_){} this.audioContext=null; }
+    }finally{
+      this.noteStabilityBuffer=[]; this.volumeHistory=[]; this.currentSilenceFrames=0; this.readyForNextNote=true;
+      const n=document.getElementById('calibrationNote'); if(n) n.textContent='-';
+      this.show('setupScreen');
+    }
+  }
+
+  async startQuiz(){ this.show('quizScreen'); await this.setupAudio(); this.generateQuestion(); }
+  async setupAudio(){
+    try{
+      const stream=await this.getStream(); this.stream=stream; await this.buildAudioChain(stream);
+      this.isListening=true; this.warmupStartTime=Date.now(); this.isCapturing=false;
+      if(!this.useScriptNode) this.detectPitch();
+    }catch(err){ console.error('Mic error (quiz):',err); alert('Impossibile accedere al microfono. Controlla i permessi del sito/PWA.'); }
+  }
+
+  stopQuiz(){
+    this.isListening=false;
+    if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; }
+    for(const n of [this.scriptNode,this.muteNode,this.lp,this.hp,this.preGain]){ try{ n && n.disconnect && n.disconnect(); }catch(_){} }
+    this.scriptNode=this.muteNode=this.lp=this.hp=this.preGain=null;
+    if(this.audioContext){ try{ this.audioContext.close(); }catch(_){} this.audioContext=null; }
+    this.currentQuestion=0; this.correctAnswers=0; this.noteStabilityBuffer=[]; this.volumeHistory=[]; this.isCapturing=false;
+    this.show('setupScreen');
+    document.getElementById('resultCard').style.display='none';
+    document.getElementById('finalScore').style.display='none';
+  }
+
   restart(){
     this.currentQuestion=0; this.correctAnswers=0; this.lastDegree=null;
-    document.getElementById('quizScreen').classList.remove('active');
-    document.getElementById('setupScreen').classList.add('active');
+    this.show('setupScreen');
     document.querySelector('.question-card').style.display='block';
     document.querySelector('.status-indicator').style.display='flex';
     document.getElementById('finalScore').style.display='none';
@@ -731,15 +608,26 @@ class IntervalTrainerApp{
     this.scriptNode=this.muteNode=this.lp=this.hp=this.preGain=null;
     if(this.audioContext){ try{ this.audioContext.close(); }catch(_){} this.audioContext=null; }
   }
+
+  generateQuestion(){
+    this.noteStabilityBuffer=[]; this.currentSilenceFrames=0; this.readyForNextNote=true; this.isCapturing=false;
+    document.getElementById('resultCard').style.display='none';
+    document.getElementById('statusText').textContent='In ascolto...';
+    document.getElementById('volumeDot').classList.remove('active');
+    if(this.selectedScale==='RANDOM'){ const keys=Object.keys(this.scales); this.currentScale=keys[Math.floor(Math.random()*keys.length)]; } else { this.currentScale=this.selectedScale; }
+    let d; do{ d=Math.floor(Math.random()*7); }while(d===this.lastDegree); this.lastDegree=d; this.currentDegree=d;
+    document.getElementById('scaleDisplay').textContent=`${this.currentScale} Maggiore`;
+    document.getElementById('degreeQuestion').textContent=['I','II','III','IV','V','VI','VII'][this.currentDegree];
+    document.getElementById('currentQuestion').textContent=this.currentQuestion+1;
+  }
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
-  console.log(`🚀 Scale Degree Trainer ${APP_VERSION} – iOS Boost + Back Fix`);
-  const vb=document.getElementById('versionBadge'); if(vb) vb.textContent=`${APP_VERSION} • iOS Boost + Back Fix`;
+  console.log(`🚀 Scale Degree Trainer ${APP_VERSION} – Desktop quiz fix`);
+  document.getElementById('versionBadge').textContent=`${APP_VERSION} • Desktop quiz fix`;
   window.app=new IntervalTrainerApp();
   const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  if(isMobile){ document.getElementById('mobileWarning').style.display='block'; window.app.applyPreset('mobile'); }
-  else{ window.app.applyPreset('desktop'); }
+  if(isMobile){ document.getElementById('mobileWarning').style.display='block'; }
 });
 </script>
 </body>
