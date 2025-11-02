@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#1a1a2e" />
-  <title>Scale Degree Trainer - Piano v6.3</title>
+  <title>Scale Degree Trainer - Piano v6.4 (Edge/PC Fix)</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root { --primary-color:#4a90e2; --secondary-color:#7b68ee; --success-color:#4caf50; --error-color:#f44336; --bg-dark:#1a1a2e; --bg-card:#16213e; --text-primary:#ffffff; --text-secondary:#a0a0a0; }
@@ -20,7 +20,7 @@
     .subtitle { color:var(--text-secondary); margin-bottom:40px; font-size:1.1rem; }
     .setup-section { width:100%; max-width:400px; margin-bottom:30px; text-align:left; }
     .setup-section label { display:block; margin-bottom:10px; font-weight:600; font-size:1.1rem; }
-    .sensitivity-controls { width:100%; max-width:400px; background:var(--bg-card); padding:20px; border-radius:12px; margin-bottom:30px; }
+    .sensitivity-controls { width:100%; max-width:420px; background:var(--bg-card); padding:20px; border-radius:12px; margin-bottom:30px; }
     .sensitivity-controls h3 { color:var(--primary-color); margin-bottom:20px; font-size:1.1rem; }
     .slider-group { margin-bottom:20px; }
     .slider-label { display:flex; justify-content:space-between; margin-bottom:8px; font-size:.95rem; color:var(--text-secondary); }
@@ -34,15 +34,15 @@
     .btn-preset { flex:1; padding:10px; font-size:.9rem; border:2px solid var(--primary-color); background:transparent; color:var(--primary-color); border-radius:8px; cursor:pointer; transition:all .3s; min-width:160px; }
     .btn-preset:hover, .btn-preset.active { background:var(--primary-color); color:white; }
     #scaleSelect { width:100%; padding:15px; font-size:1rem; background:var(--bg-card); color:var(--text-primary); border:2px solid var(--primary-color); border-radius:12px; cursor:pointer; outline:none; }
-    .info-box { background:rgba(74,144,226,.1); border:2px solid var(--primary-color); border-radius:12px; padding:20px; margin:20px 0; max-width:400px; text-align:left; }
+    .info-box { background:rgba(74,144,226,.1); border:2px solid var(--primary-color); border-radius:12px; padding:20px; margin:20px 0; max-width:420px; text-align:left; }
     .info-box h3 { color:var(--primary-color); margin-bottom:15px; font-size:1.2rem; }
     .info-box p { margin:10px 0; line-height:1.6; font-size:.95rem; }
-    .btn { padding:16px 32px; font-size:1.1rem; font-weight:600; border:none; border-radius:12px; cursor:pointer; transition:all .3s; margin:10px 0; width:100%; max-width:400px; }
+    .btn { padding:16px 32px; font-size:1.1rem; font-weight:600; border:none; border-radius:12px; cursor:pointer; transition:all .3s; margin:10px 0; width:100%; max-width:420px; }
     .btn-primary { background:linear-gradient(135deg,var(--primary-color),var(--secondary-color)); color:white; }
     .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 16px rgba(74,144,226,.3); }
     .btn-secondary { background:var(--error-color); color:white; }
     .btn-secondary:hover { background:#d32f2f; }
-    #quizScreen { justify-content:space-between; height:100vh; }
+    #quizScreen { justify-content:space-between; min-height:100vh; }
     .header { margin-bottom:30px; }
     .progress-bar { width:100%; height:8px; background:var(--bg-card); border-radius:4px; overflow:hidden; margin-bottom:15px; }
     .progress-fill { height:100%; background:linear-gradient(90deg,var(--primary-color),var(--secondary-color)); transition:width .3s ease; width:0%; }
@@ -53,39 +53,39 @@
     .interval-display { display:flex; align-items:center; justify-content:center; gap:20px; margin-bottom:40px; }
     .base-note { font-size:2rem; font-weight:bold; padding:20px 30px; background:var(--bg-card); border-radius:12px; border:2px solid var(--primary-color); }
     .arrow { font-size:2rem; color:var(--text-secondary); }
-    .target-interval { font-size:2.5rem; font-weight:bold; padding:20px 30px; background:linear-gradient(135deg,var(--primary-color),var(--secondary-color)); border-radius:12px; }
-    .listening-indicator { display:flex; align-items:center; gap:15px; font-size:1.2rem; color:var(--primary-color); }
+    .target-interval { font-size:2.2rem; font-weight:bold; padding:20px 30px; background:linear-gradient(135deg,var(--primary-color),var(--secondary-color)); border-radius:12px; }
+    .listening-indicator { display:flex; align-items:center; gap:15px; font-size:1.1rem; color:var(--primary-color); }
     .listening-indicator.hidden { display:none; }
-    .pulse { width:20px; height:20px; background:var(--primary-color); border-radius:50%; animation:pulse 1.5s infinite; }
+    .pulse { width:18px; height:18px; background:var(--primary-color); border-radius:50%; animation:pulse 1.5s infinite; }
     @keyframes pulse { 0%,100%{transform:scale(1); opacity:1} 50%{transform:scale(1.5); opacity:.5} }
-    .feedback-area { text-align:center; padding:40px; border-radius:16px; margin-bottom:40px; }
+    .feedback-area { text-align:center; padding:28px; border-radius:16px; margin-bottom:40px; }
     .feedback-area.hidden { display:none; }
     .feedback-area.correct { background:rgba(76,175,80,.2); border:2px solid var(--success-color); }
     .feedback-area.wrong { background:rgba(244,67,54,.2); border:2px solid var(--error-color); }
-    .feedback-icon { font-size:4rem; margin-bottom:20px; }
+    .feedback-icon { font-size:3.2rem; margin-bottom:16px; }
     .feedback-area.correct .feedback-icon { color:var(--success-color); }
     .feedback-area.wrong .feedback-icon { color:var(--error-color); }
-    .feedback-text { font-size:1.5rem; font-weight:bold; margin-bottom:15px; }
-    .feedback-detail { font-size:1rem; color:var(--text-secondary); margin-top:10px; }
-    .detected-note-display { font-size:1.8rem; font-weight:bold; color:var(--primary-color); margin-top:20px; min-height:40px; }
+    .feedback-text { font-size:1.3rem; font-weight:bold; margin-bottom:12px; }
+    .feedback-detail { font-size:1rem; color:var(--text-secondary); margin-top:8px; }
+    .detected-note-display { font-size:1.6rem; font-weight:bold; color:var(--primary-color); margin-top:16px; min-height:36px; }
     .bottom-controls { padding:20px 0; }
-    .score-display { display:flex; justify-content:center; gap:30px; margin-bottom:20px; font-size:1.2rem; }
+    .score-display { display:flex; justify-content:center; gap:30px; margin-bottom:20px; font-size:1.1rem; }
     .score-item { display:flex; align-items:center; gap:10px; }
     .score-item.correct { color:var(--success-color); }
     .score-item.wrong { color:var(--error-color); }
     #resultsScreen { justify-content:center; align-items:center; text-align:center; }
-    #resultsScreen h1 { font-size:2.5rem; margin-bottom:40px; }
-    .results-stats { background:var(--bg-card); border-radius:16px; padding:40px; margin-bottom:30px; max-width:400px; }
-    .stat-row { display:flex; justify-content:space-between; padding:15px 0; border-bottom:1px solid rgba(255,255,255,.1); font-size:1.2rem; }
+    #resultsScreen h1 { font-size:2.2rem; margin-bottom:32px; }
+    .results-stats { background:var(--bg-card); border-radius:16px; padding:32px; margin-bottom:24px; max-width:420px; }
+    .stat-row { display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,.1); font-size:1.1rem; }
     .stat-row:last-child { border-bottom:none; }
     .stat-label { color:var(--text-secondary); }
     .stat-value { font-weight:bold; }
-    .stat-value.accuracy { font-size:2rem; color:var(--primary-color); }
+    .stat-value.accuracy { font-size:1.6rem; color:var(--primary-color); }
     #permissionScreen { justify-content:center; align-items:center; text-align:center; }
-    #permissionScreen h1 { font-size:2rem; margin-bottom:20px; }
-    #permissionScreen p { color:var(--text-secondary); margin-bottom:30px; line-height:1.6; max-width:400px; }
-    .permission-icon { font-size:4rem; margin-bottom:30px; }
-    @media (max-width:768px){ #setupScreen h1, #resultsScreen h1{font-size:2rem;} .target-interval{font-size:2rem; padding:15px 25px;} .base-note{font-size:1.5rem; padding:15px 20px;} }
+    #permissionScreen h1 { font-size:1.8rem; margin-bottom:16px; }
+    #permissionScreen p { color:var(--text-secondary); margin-bottom:24px; line-height:1.6; max-width:420px; }
+    .permission-icon { font-size:3rem; margin-bottom:24px; }
+    @media (max-width:768px){ #setupScreen h1, #resultsScreen h1{font-size:2rem;} .target-interval{font-size:2rem; padding:15px 24px;} .base-note{font-size:1.5rem; padding:15px 20px;} }
   </style>
 </head>
 <body>
@@ -93,7 +93,7 @@
     <div id="permissionScreen" class="screen">
       <div class="permission-icon">🎤</div>
       <h1>Accesso al Microfono</h1>
-      <p>Questa app ha bisogno del microfono per rilevare le note che suoni.</p>
+      <p>Questa app ha bisogno del microfono per rilevare le note. Premi il bottone qui sotto e consenti.</p>
       <button id="requestMicBtn" class="btn btn-primary">Consenti Accesso</button>
     </div>
 
@@ -124,9 +124,9 @@
         <h3>Come funziona</h3>
         <p>📝 Ti verrà mostrato un grado (es. "3a Maggiore").</p>
         <p>🎹 Suona la nota corrispondente.</p>
-        <p>✓ L'app riconosce automaticamente la nota.</p>
-        <p><strong>💡 Suggerimento:</strong> attacchi chiari; lascia spegnere la nota.</p>
-        <p id="mobileWarning" style="display:none;color:#ff9800;margin-top:10px;"><strong>📱 iPhone/iPad:</strong> volume deciso, microfono sensibile al rumore.</p>
+        <p>✓ Riconoscimento automatico.</p>
+        <p><strong>💡</strong> Attacco chiaro e lascia spegnere la nota tra le prove.</p>
+        <p id="mobileWarning" style="display:none;color:#ff9800;margin-top:10px;"><strong>📱 iPhone/iPad:</strong> apri in Safari (non PWA) e consenti il microfono.</p>
       </div>
 
       <div class="sensitivity-controls">
@@ -218,6 +218,32 @@
   </div>
 
   <script>
+    // Avviso chiaro se aperto come file locale
+    if (location.protocol === 'file:') {
+      console.log('Aperto via file:// — Edge/Chrome possono funzionare ma sono meno prevedibili. Se il microfono non parte, usa http://localhost.');
+    }
+
+    async function diagnoseMic() {
+      const isSecure = window.isSecureContext || location.hostname === 'localhost';
+      if (!isSecure && location.protocol !== 'file:') {
+        throw new Error('SECURITY_ERROR: contesto non sicuro');
+      }
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('UNSUPPORTED: getUserMedia non disponibile');
+      }
+      try {
+        const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+        s.getTracks().forEach(t => t.stop());
+        return { ok: true };
+      } catch (e) {
+        const nm = (e && e.name) || 'UnknownError';
+        if (nm === 'NotAllowedError') throw new Error('NOT_ALLOWED');
+        if (nm === 'NotFoundError') throw new Error('NOT_FOUND');
+        if (nm === 'SecurityError') throw new Error('SECURITY_ERROR');
+        throw e;
+      }
+    }
+
     class PitchDetector {
       constructor(config = {}) {
         this.audioContext = null; this.analyser = null; this.microphone = null; this.mediaStream = null; this.buffer = null;
@@ -230,9 +256,37 @@
         this.minPianoFreq = 50; this.maxPianoFreq = 2000; this.instrumentMode = 'piano';
         document.addEventListener('visibilitychange', () => { if (!this.audioContext) return; if (document.visibilityState === 'visible' && this.audioContext.state === 'suspended') { this.audioContext.resume(); } });
       }
-      setInstrumentMode(mode) { this.instrumentMode = mode; if (!this.lowpass) { if (mode==='guitar'){ this.minPianoFreq=70; this.maxPianoFreq=1500; } else { this.minPianoFreq=50; this.maxPianoFreq=2000; } return; } if (mode==='guitar'){ this.minPianoFreq=70; this.maxPianoFreq=1500; this.lowpass.frequency.value=1400; } else { this.minPianoFreq=50; this.maxPianoFreq=2000; this.lowpass.frequency.value=1800; } }
+      setInstrumentMode(mode) {
+        this.instrumentMode = mode;
+        if (!this.lowpass) {
+          if (mode==='guitar'){ this.minPianoFreq=70; this.maxPianoFreq=1500; } else { this.minPianoFreq=50; this.maxPianoFreq=2000; }
+          return;
+        }
+        if (mode==='guitar'){ this.minPianoFreq=70; this.maxPianoFreq=1500; this.lowpass.frequency.value=1400; } else { this.minPianoFreq=50; this.maxPianoFreq=2000; this.lowpass.frequency.value=1800; }
+      }
       async initialize() {
-        try { const isiOS = /iPhone|iPad|iPod/.test(navigator.userAgent); const audioConstraints = isiOS ? { echoCancellation:true, noiseSuppression:true, autoGainControl:true, channelCount:1 } : { echoCancellation:false, noiseSuppression:false, autoGainControl:false }; this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints }); this.audioContext = new (window.AudioContext || window.webkitAudioContext)(); this.highpass = this.audioContext.createBiquadFilter(); this.highpass.type='highpass'; this.highpass.frequency.value=80; this.notch50 = this.audioContext.createBiquadFilter(); this.notch50.type='notch'; this.notch50.frequency.value=50; this.notch50.Q=20; this.lowpass = this.audioContext.createBiquadFilter(); this.lowpass.type='lowpass'; this.lowpass.frequency.value=1800; this.lowpass.Q=0.7; this.analyser = this.audioContext.createAnalyser(); this.analyser.fftSize=4096; this.analyser.smoothingTimeConstant=0.0; this.buffer=new Float32Array(this.analyser.fftSize); this.microphone = this.audioContext.createMediaStreamSource(this.mediaStream); this.microphone.connect(this.highpass); this.highpass.connect(this.notch50); this.notch50.connect(this.lowpass); this.lowpass.connect(this.analyser); this.isInitialized = true; this.isListening = false; return true; } catch (error) { console.error('❌ Microphone error:', error); return false; }
+        try {
+          const isiOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+          const trySets = isiOS
+            ? [ { audio: { echoCancellation:true, noiseSuppression:true, autoGainControl:true, channelCount:1 } }, { audio: true } ]
+            : [ { audio: true }, { audio: { echoCancellation:true, noiseSuppression:true, autoGainControl:true } }, { audio: { channelCount:1, sampleRate:44100 } } ];
+          let stream = null, lastErr = null;
+          for (const c of trySets) {
+            try { stream = await navigator.mediaDevices.getUserMedia(c); break; }
+            catch (e) { lastErr = e; }
+          }
+          if (!stream) { console.error('❌ Microphone error:', lastErr); return false; }
+          this.mediaStream = stream;
+
+          this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          this.highpass = this.audioContext.createBiquadFilter(); this.highpass.type='highpass'; this.highpass.frequency.value=80;
+          this.notch50 = this.audioContext.createBiquadFilter(); this.notch50.type='notch'; this.notch50.frequency.value=50; this.notch50.Q=20;
+          this.lowpass = this.audioContext.createBiquadFilter(); this.lowpass.type='lowpass'; this.lowpass.frequency.value=1800; this.lowpass.Q=0.7;
+          this.analyser = this.audioContext.createAnalyser(); this.analyser.fftSize=4096; this.analyser.smoothingTimeConstant=0.0; this.buffer=new Float32Array(this.analyser.fftSize);
+          this.microphone = this.audioContext.createMediaStreamSource(this.mediaStream);
+          this.microphone.connect(this.highpass); this.highpass.connect(this.notch50); this.notch50.connect(this.lowpass); this.lowpass.connect(this.analyser);
+          this.isInitialized = true; this.isListening = false; return true;
+        } catch (error) { console.error('❌ Microphone error:', error); return false; }
       }
       async startListening(callback) { this.onPitchDetected = callback; this.isListening = true; this.lastDetectedNote = null; this.noteStabilityBuffer = []; this.volumeHistory = []; this.warmupStartTime = Date.now(); this.lastNoteTime = 0; this.silenceSince = performance.now(); this.readyForNextNote = true; if (this.audioContext && this.audioContext.state === 'suspended') { await this.audioContext.resume(); } this.detectPitch(); }
       stopListening() { this.isListening=false; this.onPitchDetected=null; this.noteStabilityBuffer=[]; this.lastDetectedNote=null; this.volumeHistory=[]; this.warmupStartTime=null; this.lastNoteTime=0; this.silenceSince=null; this.readyForNextNote=true; }
@@ -274,10 +328,35 @@
       applyPreset(preset){ const presets={ desktop:{volumeThreshold:0.18,stability:3,spikeMultiplier:2.2,cooldown:600}, mobile:{volumeThreshold:0.34,stability:4,spikeMultiplier:3.2,cooldown:950} }; if(presets[preset]){ this.sensitivityConfig={...presets[preset]}; this.updateSliders(); document.querySelectorAll('.btn-preset').forEach(b=>b.classList.remove('active')); document.getElementById(`preset${preset.charAt(0).toUpperCase()+preset.slice(1)}`).classList.add('active'); } }
       markCustomPreset(){ document.querySelectorAll('.btn-preset').forEach(b=>b.classList.remove('active')); document.getElementById('presetCustom').classList.add('active'); }
       updateSliders(){ document.getElementById('volumeSlider').value=this.sensitivityConfig.volumeThreshold; document.getElementById('volumeValue').textContent=this.sensitivityConfig.volumeThreshold.toFixed(2); document.getElementById('stabilitySlider').value=this.sensitivityConfig.stability; document.getElementById('stabilityValue').textContent=this.sensitivityConfig.stability; document.getElementById('spikeSlider').value=this.sensitivityConfig.spikeMultiplier; document.getElementById('spikeValue').textContent=this.sensitivityConfig.spikeMultiplier.toFixed(1)+'x'; document.getElementById('cooldownSlider').value=this.sensitivityConfig.cooldown; document.getElementById('cooldownValue').textContent=this.sensitivityConfig.cooldown; }
-      async checkMicrophonePermission(){ try{ const stream=await navigator.mediaDevices.getUserMedia({audio:true}); stream.getTracks().forEach(t=>t.stop()); this.showScreen('setup'); } catch{ this.showScreen('permission'); } }
-      async requestMicrophone(){ const temp=new PitchDetector(this.sensitivityConfig); const ok=await temp.initialize(); if(ok){ temp.stop(); this.showScreen('setup'); } else { alert('Impossibile accedere al microfono.'); } }
+      async checkMicrophonePermission(){
+        try {
+          if (navigator.permissions && location.protocol !== 'file:') {
+            const p = await navigator.permissions.query({ name: 'microphone' });
+            if (p.state === 'granted') { this.showScreen('setup'); return; }
+          }
+        } catch {}
+        this.showScreen('permission');
+      }
+      async requestMicrophone(){
+        const trySets = [
+          { audio: true },
+          { audio: { echoCancellation:true, noiseSuppression:true, autoGainControl:true } },
+          { audio: { channelCount:1, sampleRate:44100 } }
+        ];
+        let ok=false, lastErr=null;
+        for (const c of trySets){
+          try { const s=await navigator.mediaDevices.getUserMedia(c); s.getTracks().forEach(t=>t.stop()); ok=true; break; }
+          catch(e){ lastErr=e; }
+        }
+        if (ok) this.showScreen('setup');
+        else {
+          const name=(lastErr&&lastErr.name)||'UnknownError';
+          alert(`Impossibile accedere al microfono (${name}). Concedi il permesso e riprova.`);
+          this.showScreen('permission');
+        }
+      }
       showScreen(n){ Object.values(this.screens).forEach(s=>s.classList.remove('active')); this.screens[n].classList.add('active'); }
-      async startSession(){ const scaleValue=document.getElementById('scaleSelect').value; if(scaleValue==='random'){ const ks=Object.keys(this.scales); this.selectedScale=ks[Math.floor(Math.random()*ks.length)]; } else { this.selectedScale=scaleValue; } this.pitchDetector=new PitchDetector(this.sensitivityConfig); this.pitchDetector.onVolumeChange=(volume,{attack})=>{ const indicator=document.getElementById('listeningIndicator'); if(indicator && !indicator.classList.contains('hidden')){ const pulse=indicator.querySelector('.pulse'); const th=this.sensitivityConfig.volumeThreshold; if(pulse){ if(volume>th*1.5) pulse.style.backgroundColor='#4caf50'; else if(volume>th) pulse.style.backgroundColor='#4a90e2'; else if(volume>th*0.6) pulse.style.backgroundColor='#ff9800'; else pulse.style.backgroundColor='#7b68ee'; } } const dbg=document.getElementById('volumeDebug'); if(dbg && dbg.style.display!=='none'){ const v=document.getElementById('volumeDebugValue'); const at=document.getElementById('attackVal'); if(v) v.textContent=volume.toFixed(3); if(at) at.textContent=attack.toFixed(3); } }; const initialized=await this.pitchDetector.initialize(); if(!initialized){ alert('Impossibile accedere al microfono.'); return; } this.pitchDetector.setInstrumentMode(this.instrumentMode); this.currentQuiz=0; this.correctAnswers=0; this.wrongAnswers=0; this.lastDegreeKey=null; document.getElementById('currentScale').textContent=this.scales[this.selectedScale].display+' Maggiore'; this.showScreen('quiz'); this.nextQuestion(); }
+      async startSession(){ const scaleValue=document.getElementById('scaleSelect').value; if(scaleValue==='random'){ const ks=Object.keys(this.scales); this.selectedScale=ks[Math.floor(Math.random()*ks.length)]; } else { this.selectedScale=scaleValue; } this.pitchDetector=new PitchDetector(this.sensitivityConfig); this.pitchDetector.onVolumeChange=(volume)=>{ const indicator=document.getElementById('listeningIndicator'); if(indicator && !indicator.classList.contains('hidden')){ const pulse=indicator.querySelector('.pulse'); const th=this.sensitivityConfig.volumeThreshold; if(pulse){ if(volume>th*1.5) pulse.style.backgroundColor='#4caf50'; else if(volume>th) pulse.style.backgroundColor='#4a90e2'; else if(volume>th*0.6) pulse.style.backgroundColor='#ff9800'; else pulse.style.backgroundColor='#7b68ee'; } } const dbg=document.getElementById('volumeDebug'); if(dbg && dbg.style.display!=='none'){ const v=document.getElementById('volumeDebugValue'); if(v) v.textContent=volume.toFixed(3); } }; const initialized=await this.pitchDetector.initialize(); if(!initialized){ try{ await diagnoseMic(); }catch{} alert('Impossibile accedere al microfono.'); return; } this.pitchDetector.setInstrumentMode(this.instrumentMode); this.currentQuiz=0; this.correctAnswers=0; this.wrongAnswers=0; this.lastDegreeKey=null; document.getElementById('currentScale').textContent=this.scales[this.selectedScale].display+' Maggiore'; this.showScreen('quiz'); this.nextQuestion(); }
       nextQuestion(){ this.currentQuiz++; if(this.currentQuiz>this.totalQuizzes){ this.showResults(); return; } document.getElementById('quizCounter').textContent=`${this.currentQuiz}/${this.totalQuizzes}`; document.getElementById('progressFill').style.width=`${(this.currentQuiz/this.totalQuizzes)*100}%`; document.getElementById('correctCount').textContent=this.correctAnswers; document.getElementById('wrongCount').textContent=this.wrongAnswers; this.currentQuestion=this.generateQuestion(); document.getElementById('baseNote').textContent=this.scales[this.selectedScale].display+' Maggiore'; document.getElementById('targetInterval').textContent=this.currentQuestion.degreeName; document.getElementById('feedbackArea').classList.add('hidden'); document.getElementById('questionArea').style.display='block'; const scaleNotes=this.scales[this.selectedScale].notes.map(n=>this.normalizeNote(n)); this.currentDiatonicSet=new Set(scaleNotes); this.startListening(); }
       generateQuestion(){ const scale=this.scales[this.selectedScale]; const degreeKeys=Object.keys(this.degrees); let available=degreeKeys; if(this.lastDegreeKey!==null) available=degreeKeys.filter(k=>k!==this.lastDegreeKey); const degreeKey=available[Math.floor(Math.random()*available.length)]; this.lastDegreeKey=degreeKey; const degree=this.degrees[degreeKey]; const targetNote=scale.notes[degree.index]; return { scaleName:scale.display+' Maggiore', degreeNumber:degreeKey, degreeName:degree.name, targetNote:this.normalizeNote(targetNote), targetNoteDisplay:this.displayNote(targetNote) }; }
       normalizeNote(n){ const map={'Db':'C#','Eb':'D#','Gb':'F#','Ab':'G#','Bb':'A#','E#':'F'}; return map[n]||n; }
