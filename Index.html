@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1a1a2e">
-    <title>Scale Degree Trainer - Piano v4.1</title>
+    <title>Scale Degree Trainer - Piano v5.0</title>
     <style>
 * {
     margin: 0;
@@ -479,7 +479,15 @@ body {
                 <p>🎯 Allena il tuo orecchio sui 7 gradi della scala!</p>
                 <p><strong>💡 Importante:</strong> Suona note singole con attacco chiaro</p>
                 <p><strong>⏸️ Pausa tra le note:</strong> Lascia che la nota precedente si spenga prima di suonare la successiva</p>
+                <p id="mobileWarning" style="display: none; color: #ff9800; margin-top: 10px;"><strong>📱 iPhone/iPad:</strong> Suona con volume deciso! Il microfono è molto sensibile al rumore.</p>
             </div>
+
+            <script>
+                // Mostra avviso per dispositivi mobile
+                if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                    document.getElementById('mobileWarning').style.display = 'block';
+                }
+            </script>
 
             <button id="startBtn" class="btn btn-primary">Inizia Allenamento</button>
         </div>
@@ -509,8 +517,17 @@ body {
                     </div>
                     <div id="detectedNoteDisplay" class="detected-note-display"></div>
                     <div id="volumeDebug" style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 10px; display: none;">
-                        Volume: <span id="volumeValue">0.000</span> / 0.180 (min)
+                        Volume: <span id="volumeValue">0.000</span> / <span id="volumeThreshold">0.180</span> (min)
                     </div>
+                    
+                    <script>
+                        // Imposta la soglia corretta nel display debug
+                        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                        const thresholdDisplay = document.getElementById('volumeThreshold');
+                        if (thresholdDisplay) {
+                            thresholdDisplay.textContent = isMobile ? '0.300' : '0.180';
+                        }
+                    </script>
                 </div>
 
                 <div id="feedbackArea" class="feedback-area hidden">
@@ -572,13 +589,16 @@ class PitchDetector {
         this.A4 = 440;
         this.noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
         
-        // SOGLIE OTTIMIZZATE PER PIANOFORTE
+        // RILEVAMENTO DISPOSITIVO MOBILE
+        this.isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+        // SOGLIE OTTIMIZZATE PER PIANOFORTE (differenti per mobile/desktop)
         this.currentVolume = 0;
-        this.volumeThreshold = 0.18; // Piano ha attacco più netto, soglia leggermente più bassa
+        this.volumeThreshold = this.isMobile ? 0.30 : 0.18; // Mobile: soglia MOLTO più alta
         
         // GATE per stabilità segnale
         this.noteStabilityBuffer = [];
-        this.requiredStableDetections = 3; // 3 rilevamenti consecutivi
+        this.requiredStableDetections = this.isMobile ? 4 : 3; // Mobile: più rilevamenti
         
         // Flag per evitare auto-start
         this.isInitialized = false;
@@ -593,12 +613,15 @@ class PitchDetector {
         
         // COOLDOWN: tempo minimo tra due note rilevate (piano ha sustain lungo)
         this.lastNoteTime = 0;
-        this.cooldownPeriod = 600; // Ridotto a 600ms per il piano (attacco più veloce)
+        this.cooldownPeriod = this.isMobile ? 800 : 600; // Mobile: cooldown più lungo
         
         // SILENCE GATE: richiede un periodo di silenzio tra le note
-        this.silenceFramesRequired = 3; // Ridotto a 3 frame per piano (attacco più definito)
+        this.silenceFramesRequired = this.isMobile ? 5 : 3; // Mobile: più frame di silenzio
         this.currentSilenceFrames = 0;
         this.readyForNextNote = true;
+        
+        // SPIKE DETECTION: fattore di picco rispetto alla media
+        this.spikeMultiplier = this.isMobile ? 3.0 : 2.2; // Mobile: spike molto più alto
         
         // FILTRO FREQUENZE: limiti per PIANOFORTE (A0 = 27.5 Hz a C8 = 4186 Hz)
         this.minPianoFreq = 25; // Leggermente sotto A0
@@ -698,7 +721,7 @@ class PitchDetector {
         }
         
         // SILENCE GATE: traccia periodi di silenzio
-        const silenceThreshold = 0.06; // Soglia più bassa per piano (decadimento naturale)
+        const silenceThreshold = this.isMobile ? 0.10 : 0.06; // Mobile: soglia silenzio più alta
         if (volume < silenceThreshold) {
             this.currentSilenceFrames++;
             if (this.currentSilenceFrames >= this.silenceFramesRequired) {
@@ -717,7 +740,7 @@ class PitchDetector {
         // 2. Il volume corrente deve essere significativamente più alto della media (spike detection)
         // 3. Deve essere pronto per la prossima nota (dopo silenzio)
         // 4. Non deve essere in cooldown
-        const volumeSpike = volume > (avgVolume * 2.2); // Ridotto a 2.2x per il piano (attacco più uniforme)
+        const volumeSpike = volume > (avgVolume * this.spikeMultiplier); // Mobile usa 3.0x, Desktop 2.2x
         
         if (volume < this.volumeThreshold || !volumeSpike || inCooldown || !this.readyForNextNote) {
             // Pulisci il buffer se non sono soddisfatte le condizioni
@@ -776,8 +799,9 @@ class PitchDetector {
         }
         rms = Math.sqrt(rms / size);
         
-        // SOGLIA RMS OTTIMIZZATA PER PIANO - suono più pulito rispetto alla chitarra
-        if (rms < 0.18) return -1;
+        // SOGLIA RMS OTTIMIZZATA - MOBILE ha soglia MOLTO più alta
+        const rmsThreshold = this.isMobile ? 0.30 : 0.18;
+        if (rms < rmsThreshold) return -1;
         
         let correlations = [];
         let lastCorrelation = 1;
@@ -791,8 +815,9 @@ class PitchDetector {
             
             correlation = 1 - (correlation / maxSamples);
             
-            // SOGLIA CORRELAZIONE OTTIMIZZATA PER PIANO - suono più armonico e pulito
-            if (correlation > 0.88 && correlation > lastCorrelation) {
+            // SOGLIA CORRELAZIONE - MOBILE richiede correlazione più alta
+            const correlationThreshold = this.isMobile ? 0.92 : 0.88;
+            if (correlation > correlationThreshold && correlation > lastCorrelation) {
                 correlations.push({ offset: offset, correlation: correlation });
             }
             
@@ -806,8 +831,9 @@ class PitchDetector {
         bestCorrelation = correlations[0].correlation;
         bestOffset = correlations[0].offset;
         
-        // SOGLIA CORRELAZIONE OTTIMIZZATA PER PIANO
-        if (bestCorrelation > 0.88 && bestOffset > 0) {
+        // SOGLIA CORRELAZIONE - MOBILE richiede correlazione più alta
+        const correlationThreshold = this.isMobile ? 0.92 : 0.88;
+        if (bestCorrelation > correlationThreshold && bestOffset > 0) {
             for (let i = 1; i < correlations.length && i < 3; i++) {
                 if (correlations[i].offset < bestOffset * 0.6) {
                     if (correlations[i].correlation > bestCorrelation * 0.9) {
@@ -931,13 +957,16 @@ class IntervalTrainerApp {
             const indicator = document.getElementById('listeningIndicator');
             if (indicator && !indicator.classList.contains('hidden')) {
                 const pulse = indicator.querySelector('.pulse');
-                // INDICATORE VISUALE OTTIMIZZATO PER PIANO
+                // INDICATORE VISUALE - adattato per mobile/desktop
+                const isMobile = this.pitchDetector.isMobile;
+                const threshold = isMobile ? 0.30 : 0.18;
+                
                 if (pulse) {
-                    if (volume > 0.25) {
+                    if (volume > threshold * 1.5) {
                         pulse.style.backgroundColor = '#4caf50'; // Verde: ottimo
-                    } else if (volume > 0.18) {
+                    } else if (volume > threshold) {
                         pulse.style.backgroundColor = '#4a90e2'; // Blu: buono (sopra soglia)
-                    } else if (volume > 0.10) {
+                    } else if (volume > threshold * 0.6) {
                         pulse.style.backgroundColor = '#ff9800'; // Arancione: debole
                     } else {
                         pulse.style.backgroundColor = '#7b68ee'; // Viola: troppo debole
@@ -1221,12 +1250,22 @@ class IntervalTrainerApp {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 App loaded - Version 4.1 PIANO OPTIMIZED with NO REPEATS');
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    console.log('🚀 App loaded - Version 5.0 MOBILE-OPTIMIZED');
+    console.log('📱 Device: ' + (isMobile ? 'MOBILE (strict thresholds)' : 'DESKTOP'));
     console.log('🎹 Optimized for piano/keyboard detection');
-    console.log('📊 Settings: Volume = 0.18, RMS = 0.18, Correlation = 0.88, Stability = 3');
-    console.log('⏱️  Cooldown = 600ms, Silence gate = 3 frames, Spike = 2.2x');
+    
+    if (isMobile) {
+        console.log('📊 MOBILE Settings: Volume = 0.30, RMS = 0.30, Correlation = 0.92, Stability = 4');
+        console.log('⏱️  Cooldown = 800ms, Silence gate = 5 frames, Spike = 3.0x');
+        console.log('🔇 Silence threshold = 0.10');
+    } else {
+        console.log('📊 DESKTOP Settings: Volume = 0.18, RMS = 0.18, Correlation = 0.88, Stability = 3');
+        console.log('⏱️  Cooldown = 600ms, Silence gate = 3 frames, Spike = 2.2x');
+        console.log('🔇 Silence threshold = 0.06');
+    }
+    
     console.log('🎼 Frequency range: 25-4500 Hz (A0 to C8)');
-    console.log('🔇 Silence threshold = 0.06 (lower for piano sustain)');
     console.log('🔄 No consecutive degree repeats');
     window.app = new IntervalTrainerApp();
 });
