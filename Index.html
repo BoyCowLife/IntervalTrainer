@@ -275,8 +275,8 @@ class PitchDetector {
         this.lastPitchHz = null;
 
         // Frequency range (piano)
-        this.minPianoFreq = 25;
-        this.maxPianoFreq = 4500;
+        this.minPianoFreq = 50;
+        this.maxPianoFreq = 2000;
 
         document.addEventListener('visibilitychange', () => {
             if (!this.audioContext) return;
@@ -290,31 +290,47 @@ class PitchDetector {
 
     async initialize() {
         try {
-            this.mediaStream = await navigator.mediaDevices.getUserMedia({
-                audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:false }
-            });
+            const isiOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+            const audioConstraints = isiOS ? {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+                channelCount: 1
+            } : {
+                echoCancellation: false,
+                noiseSuppression: false,
+                autoGainControl: false
+            };
+            this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints });
 
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
             // === Filters chain ===
             this.highpass = this.audioContext.createBiquadFilter();
             this.highpass.type = 'highpass';
-            this.highpass.frequency.value = 70;
+            this.highpass.frequency.value = 80; // leggermente più alto per iPhone
 
             this.notch50 = this.audioContext.createBiquadFilter();
             this.notch50.type = 'notch';
             this.notch50.frequency.value = 50;
             this.notch50.Q = 20;
 
+            this.lowpass = this.audioContext.createBiquadFilter();
+            this.lowpass.type = 'lowpass';
+            this.lowpass.frequency.value = 1800; // taglia armoniche acute/rumori
+            this.lowpass.Q = 0.7;
+
             this.analyser = this.audioContext.createAnalyser();
             this.analyser.fftSize = 4096;
+            this.analyser.smoothingTimeConstant = 0.0; // niente smoothing per attacchi rapidi
             this.buffer = new Float32Array(this.analyser.fftSize);
 
             this.microphone = this.audioContext.createMediaStreamSource(this.mediaStream);
-            // mic -> highpass -> notch50 -> analyser
+            // mic -> highpass -> notch50 -> lowpass -> analyser
             this.microphone.connect(this.highpass);
             this.highpass.connect(this.notch50);
-            this.notch50.connect(this.analyser);
+            this.notch50.connect(this.lowpass);
+            this.lowpass.connect(this.analyser);
 
             this.isInitialized = true;
             this.isListening = false;
@@ -685,6 +701,11 @@ class IntervalTrainerApp {
         document.getElementById('targetInterval').textContent = this.currentQuestion.degreeName;
         document.getElementById('feedbackArea').classList.add('hidden');
         document.getElementById('questionArea').style.display = 'block';
+
+        // costruisci set di note diatoniche (in diesis) per filtro
+        const scaleNotes = this.scales[this.selectedScale].notes.map(n => this.normalizeNote(n));
+        this.currentDiatonicSet = new Set(scaleNotes);
+
         this.startListening();
     }
 
@@ -705,35 +726,60 @@ class IntervalTrainerApp {
 
     startListening() {
         this.isWaitingForAnswer = true;
+        this.foundCorrect = false;
         this.detectedNotes = [];
         document.getElementById('listeningIndicator').classList.remove('hidden');
         document.getElementById('detectedNoteDisplay').textContent = '';
-        // debug panel toggle: set display to 'block' to see live values
-        // document.getElementById('volumeDebug').style.display = 'block';
+        // finestra massima di risposta per iOS (evita raffiche di false trigger)
+        if (this.answerWindowTimer) clearTimeout(this.answerWindowTimer);
+        this.answerWindowTimer = setTimeout(() => { if (!this.foundCorrect) this.evaluateAnswer(); }, 4000);
 
         this.pitchDetector.startListening((noteData) => {
             if (!this.isWaitingForAnswer) return;
+
+            const normalized = this.normalizeNote(noteData.note);
+            // filtro diatonico: accetta solo note della scala corrente
+            if (!this.currentDiatonicSet || !this.currentDiatonicSet.has(normalized)) {
+                return; // ignora rumori/armonie fuori scala
+            }
+
             const displayElement = document.getElementById('detectedNoteDisplay');
             if (displayElement) displayElement.textContent = this.displayNote(noteData.note);
             this.detectedNotes.push(noteData.note);
+
+            // accetta subito se è quella giusta (qualsiasi ottava)
+            const normalizedTarget = this.normalizeNote(this.currentQuestion.targetNote);
+            if (normalized === normalizedTarget) {
+                this.foundCorrect = true;
+                if (this.answerWindowTimer) clearTimeout(this.answerWindowTimer);
+                // forza valutazione immediata
+                this.detectedNotes.push(noteData.note);
+                this.detectedNotes.push(noteData.note);
+                this.evaluateAnswer();
+                return;
+            }
+
             if (this.noteDetectionTimeout) clearTimeout(this.noteDetectionTimeout);
             if (this.detectedNotes.length >= 3) {
-                this.noteDetectionTimeout = setTimeout(() => { this.evaluateAnswer(); }, 1000);
+                this.noteDetectionTimeout = setTimeout(() => { if (!this.foundCorrect) this.evaluateAnswer(); }, 800);
             }
         });
     }
 
     evaluateAnswer() {
-        if (!this.isWaitingForAnswer || this.detectedNotes.length < 3) return;
+        if (!this.isWaitingForAnswer) return;
         this.isWaitingForAnswer = false;
+        if (this.answerWindowTimer) { clearTimeout(this.answerWindowTimer); this.answerWindowTimer = null; }
         this.pitchDetector.stopListening();
         document.getElementById('listeningIndicator').classList.add('hidden');
         const detectedNote = this.getMostCommonNote(this.detectedNotes);
-        const normalizedDetected = this.normalizeNote(detectedNote);
+        const normalizedDetected = this.normalizeNote(detectedNote || '');
         const normalizedTarget = this.normalizeNote(this.currentQuestion.targetNote);
         const isCorrect = normalizedDetected === normalizedTarget;
-        this.showFeedback(isCorrect, detectedNote);
-        if (isCorrect) { this.correctAnswers++; setTimeout(()=>this.nextQuestion(), 1500); }
+        this.showFeedback(isCorrect, detectedNote || '-');
+        if (isCorrect) { this.correctAnswers++; setTimeout(()=>this.nextQuestion(), 1200); }
+        else { this.wrongAnswers++; setTimeout(()=>this.nextQuestion(), 2200); }
+    }
         else { this.wrongAnswers++; setTimeout(()=>this.nextQuestion(), 3000); }
     }
 
@@ -758,7 +804,11 @@ class IntervalTrainerApp {
         }
     }
 
-    stopSession() { if (this.pitchDetector) this.pitchDetector.stop(); this.showResults(); }
+    stopSession() {
+        if (this.answerWindowTimer) { clearTimeout(this.answerWindowTimer); this.answerWindowTimer = null; }
+        if (this.pitchDetector) this.pitchDetector.stop();
+        this.showResults();
+    }
 
     showResults() {
         if (this.pitchDetector) this.pitchDetector.stop();
