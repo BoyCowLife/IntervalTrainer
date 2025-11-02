@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -7,14 +6,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1a1a2e">
-    <title>Scale Degree Trainer - Piano v6.0</title>
+    <title>Scale Degree Trainer - Piano v6.1</title>
     <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
+* { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
     --primary-color: #4a90e2;
     --secondary-color: #7b68ee;
@@ -25,7 +19,6 @@
     --text-primary: #ffffff;
     --text-secondary: #a0a0a0;
 }
-
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background: linear-gradient(135deg, var(--bg-dark) 0%, #0f3460 100%);
@@ -34,503 +27,84 @@ body {
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
 }
-
-.container {
-    max-width: 100%;
-    width: 100%;
-    min-height: 100vh;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-}
-
-.screen {
-    display: none;
-    flex-direction: column;
-    animation: fadeIn 0.3s ease-in;
-}
-
-.screen.active {
-    display: flex;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-#setupScreen {
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-}
-
-#setupScreen h1 {
-    font-size: 2.5rem;
-    margin-bottom: 10px;
-}
-
-.subtitle {
-    color: var(--text-secondary);
-    margin-bottom: 40px;
-    font-size: 1.1rem;
-}
-
-.setup-section {
-    width: 100%;
-    max-width: 400px;
-    margin-bottom: 30px;
-    text-align: left;
-}
-
-.setup-section label {
-    display: block;
-    margin-bottom: 10px;
-    font-weight: 600;
-    font-size: 1.1rem;
-}
-
-.sensitivity-controls {
-    width: 100%;
-    max-width: 400px;
-    background: var(--bg-card);
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 30px;
-}
-
-.sensitivity-controls h3 {
-    color: var(--primary-color);
-    margin-bottom: 20px;
-    font-size: 1.1rem;
-}
-
-.slider-group {
-    margin-bottom: 20px;
-}
-
-.slider-label {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    font-size: 0.95rem;
-    color: var(--text-secondary);
-}
-
-.slider-value {
-    color: var(--primary-color);
-    font-weight: bold;
-}
-
-.slider {
-    width: 100%;
-    height: 8px;
-    border-radius: 4px;
-    background: rgba(74, 144, 226, 0.2);
-    outline: none;
-    -webkit-appearance: none;
-}
-
-.slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: var(--primary-color);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.slider::-webkit-slider-thumb:hover {
-    background: var(--secondary-color);
-    transform: scale(1.2);
-}
-
-.slider::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: var(--primary-color);
-    cursor: pointer;
-    border: none;
-    transition: all 0.2s;
-}
-
-.slider::-moz-range-thumb:hover {
-    background: var(--secondary-color);
-    transform: scale(1.2);
-}
-
-.preset-buttons {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.btn-preset {
-    flex: 1;
-    padding: 10px;
-    font-size: 0.9rem;
-    border: 2px solid var(--primary-color);
-    background: transparent;
-    color: var(--primary-color);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.btn-preset:hover, .btn-preset.active {
-    background: var(--primary-color);
-    color: white;
-}
-
-#scaleSelect {
-    width: 100%;
-    padding: 15px;
-    font-size: 1rem;
-    background: var(--bg-card);
-    color: var(--text-primary);
-    border: 2px solid var(--primary-color);
-    border-radius: 12px;
-    cursor: pointer;
-    outline: none;
-}
-
-.info-box {
-    background: rgba(74, 144, 226, 0.1);
-    border: 2px solid var(--primary-color);
-    border-radius: 12px;
-    padding: 20px;
-    margin: 20px 0;
-    max-width: 400px;
-    text-align: left;
-}
-
-.info-box h3 {
-    color: var(--primary-color);
-    margin-bottom: 15px;
-    font-size: 1.2rem;
-}
-
-.info-box p {
-    margin: 10px 0;
-    line-height: 1.6;
-    font-size: 0.95rem;
-}
-
-.btn {
-    padding: 16px 32px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.3s;
-    margin: 10px 0;
-    width: 100%;
-    max-width: 400px;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: white;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(74, 144, 226, 0.3);
-}
-
-.btn-secondary {
-    background: var(--error-color);
-    color: white;
-}
-
-.btn-secondary:hover {
-    background: #d32f2f;
-}
-
-#quizScreen {
-    justify-content: space-between;
-    height: 100vh;
-}
-
-.header {
-    margin-bottom: 30px;
-}
-
-.progress-bar {
-    width: 100%;
-    height: 8px;
-    background: var(--bg-card);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 15px;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-    transition: width 0.3s ease;
-    width: 0%;
-}
-
-.quiz-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 1rem;
-    color: var(--text-secondary);
-}
-
-.quiz-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.question-area {
-    text-align: center;
-    margin-bottom: 40px;
-}
-
-.question-area h2 {
-    font-size: 1.5rem;
-    margin-bottom: 30px;
-    color: var(--text-secondary);
-}
-
-.interval-display {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-    margin-bottom: 40px;
-}
-
-.base-note {
-    font-size: 2rem;
-    font-weight: bold;
-    padding: 20px 30px;
-    background: var(--bg-card);
-    border-radius: 12px;
-    border: 2px solid var(--primary-color);
-}
-
-.arrow {
-    font-size: 2rem;
-    color: var(--text-secondary);
-}
-
-.target-interval {
-    font-size: 2.5rem;
-    font-weight: bold;
-    padding: 20px 30px;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    border-radius: 12px;
-}
-
-.listening-indicator {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    font-size: 1.2rem;
-    color: var(--primary-color);
-}
-
-.listening-indicator.hidden {
-    display: none;
-}
-
-.pulse {
-    width: 20px;
-    height: 20px;
-    background: var(--primary-color);
-    border-radius: 50%;
-    animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(1.5);
-        opacity: 0.5;
-    }
-}
-
-.feedback-area {
-    text-align: center;
-    padding: 40px;
-    border-radius: 16px;
-    margin-bottom: 40px;
-}
-
-.feedback-area.hidden {
-    display: none;
-}
-
-.feedback-area.correct {
-    background: rgba(76, 175, 80, 0.2);
-    border: 2px solid var(--success-color);
-}
-
-.feedback-area.wrong {
-    background: rgba(244, 67, 54, 0.2);
-    border: 2px solid var(--error-color);
-}
-
-.feedback-icon {
-    font-size: 4rem;
-    margin-bottom: 20px;
-}
-
-.feedback-area.correct .feedback-icon {
-    color: var(--success-color);
-}
-
-.feedback-area.wrong .feedback-icon {
-    color: var(--error-color);
-}
-
-.feedback-text {
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 15px;
-}
-
-.feedback-detail {
-    font-size: 1rem;
-    color: var(--text-secondary);
-    margin-top: 10px;
-}
-
-.detected-note-display {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: var(--primary-color);
-    margin-top: 20px;
-    min-height: 40px;
-}
-
-.bottom-controls {
-    padding: 20px 0;
-}
-
-.score-display {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    margin-bottom: 20px;
-    font-size: 1.2rem;
-}
-
-.score-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.score-item.correct {
-    color: var(--success-color);
-}
-
-.score-item.wrong {
-    color: var(--error-color);
-}
-
-#resultsScreen {
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-}
-
-#resultsScreen h1 {
-    font-size: 2.5rem;
-    margin-bottom: 40px;
-}
-
-.results-stats {
-    background: var(--bg-card);
-    border-radius: 16px;
-    padding: 40px;
-    margin-bottom: 30px;
-    max-width: 400px;
-}
-
-.stat-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 15px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 1.2rem;
-}
-
-.stat-row:last-child {
-    border-bottom: none;
-}
-
-.stat-label {
-    color: var(--text-secondary);
-}
-
-.stat-value {
-    font-weight: bold;
-}
-
-.stat-value.accuracy {
-    font-size: 2rem;
-    color: var(--primary-color);
-}
-
-#permissionScreen {
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-}
-
-#permissionScreen h1 {
-    font-size: 2rem;
-    margin-bottom: 20px;
-}
-
-#permissionScreen p {
-    color: var(--text-secondary);
-    margin-bottom: 30px;
-    line-height: 1.6;
-    max-width: 400px;
-}
-
-.permission-icon {
-    font-size: 4rem;
-    margin-bottom: 30px;
-}
-
+.container { max-width: 100%; width: 100%; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; }
+.screen { display: none; flex-direction: column; animation: fadeIn 0.3s ease-in; }
+.screen.active { display: flex; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px);} to { opacity: 1; transform: translateY(0);} }
+#setupScreen { justify-content: center; align-items: center; text-align: center; }
+#setupScreen h1 { font-size: 2.5rem; margin-bottom: 10px; }
+.subtitle { color: var(--text-secondary); margin-bottom: 40px; font-size: 1.1rem; }
+.setup-section { width: 100%; max-width: 400px; margin-bottom: 30px; text-align: left; }
+.setup-section label { display: block; margin-bottom: 10px; font-weight: 600; font-size: 1.1rem; }
+.sensitivity-controls { width: 100%; max-width: 400px; background: var(--bg-card); padding: 20px; border-radius: 12px; margin-bottom: 30px; }
+.sensitivity-controls h3 { color: var(--primary-color); margin-bottom: 20px; font-size: 1.1rem; }
+.slider-group { margin-bottom: 20px; }
+.slider-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; color: var(--text-secondary); }
+.slider-value { color: var(--primary-color); font-weight: bold; }
+.slider { width: 100%; height: 8px; border-radius: 4px; background: rgba(74, 144, 226, 0.2); outline: none; -webkit-appearance: none; }
+.slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--primary-color); cursor: pointer; transition: all 0.2s; }
+.slider::-webkit-slider-thumb:hover { background: var(--secondary-color); transform: scale(1.2); }
+.slider::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--primary-color); cursor: pointer; border: none; transition: all 0.2s; }
+.slider::-moz-range-thumb:hover { background: var(--secondary-color); transform: scale(1.2); }
+.preset-buttons { display: flex; gap: 10px; margin-bottom: 15px; }
+.btn-preset { flex: 1; padding: 10px; font-size: 0.9rem; border: 2px solid var(--primary-color); background: transparent; color: var(--primary-color); border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+.btn-preset:hover, .btn-preset.active { background: var(--primary-color); color: white; }
+#scaleSelect { width: 100%; padding: 15px; font-size: 1rem; background: var(--bg-card); color: var(--text-primary); border: 2px solid var(--primary-color); border-radius: 12px; cursor: pointer; outline: none; }
+.info-box { background: rgba(74, 144, 226, 0.1); border: 2px solid var(--primary-color); border-radius: 12px; padding: 20px; margin: 20px 0; max-width: 400px; text-align: left; }
+.info-box h3 { color: var(--primary-color); margin-bottom: 15px; font-size: 1.2rem; }
+.info-box p { margin: 10px 0; line-height: 1.6; font-size: 0.95rem; }
+.btn { padding: 16px 32px; font-size: 1.1rem; font-weight: 600; border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s; margin: 10px 0; width: 100%; max-width: 400px; }
+.btn-primary { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(74, 144, 226, 0.3); }
+.btn-secondary { background: var(--error-color); color: white; }
+.btn-secondary:hover { background: #d32f2f; }
+#quizScreen { justify-content: space-between; height: 100vh; }
+.header { margin-bottom: 30px; }
+.progress-bar { width: 100%; height: 8px; background: var(--bg-card); border-radius: 4px; overflow: hidden; margin-bottom: 15px; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); transition: width 0.3s ease; width: 0%; }
+.quiz-info { display: flex; justify-content: space-between; font-size: 1rem; color: var(--text-secondary); }
+.quiz-content { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.question-area { text-align: center; margin-bottom: 40px; }
+.question-area h2 { font-size: 1.5rem; margin-bottom: 30px; color: var(--text-secondary); }
+.interval-display { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 40px; }
+.base-note { font-size: 2rem; font-weight: bold; padding: 20px 30px; background: var(--bg-card); border-radius: 12px; border: 2px solid var(--primary-color); }
+.arrow { font-size: 2rem; color: var(--text-secondary); }
+.target-interval { font-size: 2.5rem; font-weight: bold; padding: 20px 30px; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border-radius: 12px; }
+.listening-indicator { display: flex; align-items: center; gap: 15px; font-size: 1.2rem; color: var(--primary-color); }
+.listening-indicator.hidden { display: none; }
+.pulse { width: 20px; height: 20px; background: var(--primary-color); border-radius: 50%; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1;} 50% { transform: scale(1.5); opacity: 0.5;} }
+.feedback-area { text-align: center; padding: 40px; border-radius: 16px; margin-bottom: 40px; }
+.feedback-area.hidden { display: none; }
+.feedback-area.correct { background: rgba(76, 175, 80, 0.2); border: 2px solid var(--success-color); }
+.feedback-area.wrong { background: rgba(244, 67, 54, 0.2); border: 2px solid var(--error-color); }
+.feedback-icon { font-size: 4rem; margin-bottom: 20px; }
+.feedback-area.correct .feedback-icon { color: var(--success-color); }
+.feedback-area.wrong .feedback-icon { color: var(--error-color); }
+.feedback-text { font-size: 1.5rem; font-weight: bold; margin-bottom: 15px; }
+.feedback-detail { font-size: 1rem; color: var(--text-secondary); margin-top: 10px; }
+.detected-note-display { font-size: 1.8rem; font-weight: bold; color: var(--primary-color); margin-top: 20px; min-height: 40px; }
+.bottom-controls { padding: 20px 0; }
+.score-display { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; font-size: 1.2rem; }
+.score-item { display: flex; align-items: center; gap: 10px; }
+.score-item.correct { color: var(--success-color); }
+.score-item.wrong { color: var(--error-color); }
+#resultsScreen { justify-content: center; align-items: center; text-align: center; }
+#resultsScreen h1 { font-size: 2.5rem; margin-bottom: 40px; }
+.results-stats { background: var(--bg-card); border-radius: 16px; padding: 40px; margin-bottom: 30px; max-width: 400px; }
+.stat-row { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1); font-size: 1.2rem; }
+.stat-row:last-child { border-bottom: none; }
+.stat-label { color: var(--text-secondary); }
+.stat-value { font-weight: bold; }
+.stat-value.accuracy { font-size: 2rem; color: var(--primary-color); }
+#permissionScreen { justify-content: center; align-items: center; text-align: center; }
+#permissionScreen h1 { font-size: 2rem; margin-bottom: 20px; }
+#permissionScreen p { color: var(--text-secondary); margin-bottom: 30px; line-height: 1.6; max-width: 400px; }
+.permission-icon { font-size: 4rem; margin-bottom: 30px; }
 @media (max-width: 768px) {
-    #setupScreen h1,
-    #resultsScreen h1 {
-        font-size: 2rem;
-    }
-    
-    .target-interval {
-        font-size: 2rem;
-        padding: 15px 25px;
-    }
-    
-    .base-note {
-        font-size: 1.5rem;
-        padding: 15px 20px;
-    }
+    #setupScreen h1, #resultsScreen h1 { font-size: 2rem; }
+    .target-interval { font-size: 2rem; padding: 15px 25px; }
+    .base-note { font-size: 1.5rem; padding: 15px 20px; }
 }
     </style>
 </head>
@@ -539,14 +113,13 @@ body {
         <div id="permissionScreen" class="screen">
             <div class="permission-icon">🎤</div>
             <h1>Accesso al Microfono</h1>
-            <p>Questa app ha bisogno del microfono per rilevare le note che suoni sulla chitarra.</p>
+            <p>Questa app ha bisogno del microfono per rilevare le note che suoni.</p>
             <button id="requestMicBtn" class="btn btn-primary">Consenti Accesso</button>
         </div>
 
         <div id="setupScreen" class="screen">
             <h1>🎹 Scale Degree Trainer</h1>
-            <p class="subtitle">Allena il tuo orecchio sui gradi delle scale al pianoforte</p>
-            
+            <p class="subtitle">Allena l'orecchio sui gradi delle scale</p>
             <div class="setup-section">
                 <label for="scaleSelect">Scegli la tonalità:</label>
                 <select id="scaleSelect">
@@ -568,78 +141,50 @@ body {
 
             <div class="info-box">
                 <h3>Come funziona</h3>
-                <p>📝 Ti verrà mostrato un grado della scala (es. "3a Maggiore")</p>
-                <p>🎹 Suona la nota corrispondente al pianoforte</p>
-                <p>✓ L'app riconoscerà automaticamente la nota</p>
-                <p>🎯 Allena il tuo orecchio sui 7 gradi della scala!</p>
-                <p><strong>💡 Importante:</strong> Suona note singole con attacco chiaro</p>
-                <p><strong>⏸️ Pausa tra le note:</strong> Lascia che la nota precedente si spenga prima di suonare la successiva</p>
-                <p id="mobileWarning" style="display: none; color: #ff9800; margin-top: 10px;"><strong>📱 iPhone/iPad:</strong> Suona con volume deciso! Il microfono è molto sensibile al rumore.</p>
+                <p>📝 Ti verrà mostrato un grado (es. "3a Maggiore").</p>
+                <p>🎹 Suona la nota corrispondente.</p>
+                <p>✓ L'app riconosce automaticamente la nota.</p>
+                <p><strong>💡 Suggerimento:</strong> suona attacchi chiari, lascia spegnere la nota.</p>
+                <p id="mobileWarning" style="display:none;color:#ff9800;margin-top:10px;"><strong>📱 iPhone/iPad:</strong> volume deciso, microfono sensibile al rumore.</p>
             </div>
 
             <div class="sensitivity-controls">
                 <h3>🎚️ Calibrazione Sensibilità</h3>
-                
                 <div class="preset-buttons">
                     <button class="btn-preset" id="presetDesktop">💻 Desktop</button>
                     <button class="btn-preset" id="presetMobile">📱 Mobile</button>
                     <button class="btn-preset" id="presetCustom">⚙️ Manuale</button>
                 </div>
-
                 <div class="slider-group">
-                    <div class="slider-label">
-                        <span>Volume Minimo</span>
-                        <span class="slider-value" id="volumeValue">0.18</span>
-                    </div>
+                    <div class="slider-label"><span>Volume Minimo</span><span class="slider-value" id="volumeValue">0.18</span></div>
                     <input type="range" min="0.05" max="0.50" step="0.01" value="0.18" class="slider" id="volumeSlider">
                 </div>
-
                 <div class="slider-group">
-                    <div class="slider-label">
-                        <span>Rilevamenti Consecutivi</span>
-                        <span class="slider-value" id="stabilityValue">3</span>
-                    </div>
+                    <div class="slider-label"><span>Rilevamenti Consecutivi</span><span class="slider-value" id="stabilityValue">3</span></div>
                     <input type="range" min="2" max="6" step="1" value="3" class="slider" id="stabilitySlider">
                 </div>
-
                 <div class="slider-group">
-                    <div class="slider-label">
-                        <span>Picco Richiesto (vs media)</span>
-                        <span class="slider-value" id="spikeValue">2.2x</span>
-                    </div>
+                    <div class="slider-label"><span>Picco Richiesto (vs media)</span><span class="slider-value" id="spikeValue">2.2x</span></div>
                     <input type="range" min="1.5" max="4.0" step="0.1" value="2.2" class="slider" id="spikeSlider">
                 </div>
-
                 <div class="slider-group">
-                    <div class="slider-label">
-                        <span>Pausa tra Note (ms)</span>
-                        <span class="slider-value" id="cooldownValue">600</span>
-                    </div>
+                    <div class="slider-label"><span>Pausa tra Note (ms)</span><span class="slider-value" id="cooldownValue">600</span></div>
                     <input type="range" min="300" max="1200" step="100" value="600" class="slider" id="cooldownSlider">
                 </div>
             </div>
-
             <script>
-                // Mostra avviso per dispositivi mobile
                 if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
                     document.getElementById('mobileWarning').style.display = 'block';
                 }
             </script>
-
             <button id="startBtn" class="btn btn-primary">Inizia Allenamento</button>
         </div>
 
         <div id="quizScreen" class="screen">
             <div class="header">
-                <div class="progress-bar">
-                    <div id="progressFill" class="progress-fill"></div>
-                </div>
-                <div class="quiz-info">
-                    <span id="quizCounter">0/10</span>
-                    <span id="currentScale">-</span>
-                </div>
+                <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+                <div class="quiz-info"><span id="quizCounter">0/10</span><span id="currentScale">-</span></div>
             </div>
-
             <div class="quiz-content">
                 <div id="questionArea" class="question-area">
                     <h2>Suona il grado richiesto:</h2>
@@ -649,31 +194,22 @@ body {
                         <div id="targetInterval" class="target-interval">-</div>
                     </div>
                     <div id="listeningIndicator" class="listening-indicator hidden">
-                        <div class="pulse"></div>
-                        <span>Ascolto...</span>
+                        <div class="pulse"></div><span>Ascolto...</span>
                     </div>
                     <div id="detectedNoteDisplay" class="detected-note-display"></div>
-                    <div id="volumeDebug" style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 10px; display: none;">
-                        Volume: <span id="volumeValue">0.000</span>
+                    <div id="volumeDebug" style="font-size:0.9rem;color:var(--text-secondary);margin-top:10px;display:none;">
+                        Volume: <span id="volumeDebugValue">0.000</span> · Armed: <span id="armedFlag">false</span> · Attack: <span id="attackVal">0.000</span>
                     </div>
                 </div>
-
                 <div id="feedbackArea" class="feedback-area hidden">
                     <div id="feedbackIcon" class="feedback-icon"></div>
                     <div id="feedbackText" class="feedback-text"></div>
                 </div>
             </div>
-
             <div class="bottom-controls">
                 <div class="score-display">
-                    <div class="score-item correct">
-                        <span>✓</span>
-                        <span id="correctCount">0</span>
-                    </div>
-                    <div class="score-item wrong">
-                        <span>✗</span>
-                        <span id="wrongCount">0</span>
-                    </div>
+                    <div class="score-item correct"><span>✓</span><span id="correctCount">0</span></div>
+                    <div class="score-item wrong"><span>✗</span><span id="wrongCount">0</span></div>
                 </div>
                 <button id="stopBtn" class="btn btn-secondary">Termina Sessione</button>
             </div>
@@ -681,27 +217,16 @@ body {
 
         <div id="resultsScreen" class="screen">
             <h1>🎉 Sessione Completata!</h1>
-            
             <div class="results-stats">
-                <div class="stat-row">
-                    <span class="stat-label">Risposte Corrette:</span>
-                    <span class="stat-value" style="color: var(--success-color);" id="finalCorrect">0</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Risposte Sbagliate:</span>
-                    <span class="stat-value" style="color: var(--error-color);" id="finalWrong">0</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Accuratezza:</span>
-                    <span class="stat-value accuracy" id="finalAccuracy">0%</span>
-                </div>
+                <div class="stat-row"><span class="stat-label">Risposte Corrette:</span><span class="stat-value" style="color:var(--success-color);" id="finalCorrect">0</span></div>
+                <div class="stat-row"><span class="stat-label">Risposte Sbagliate:</span><span class="stat-value" style="color:var(--error-color);" id="finalWrong">0</span></div>
+                <div class="stat-row"><span class="stat-label">Accuratezza:</span><span class="stat-value accuracy" id="finalAccuracy">0%</span></div>
             </div>
-
             <button id="restartBtn" class="btn btn-primary">Nuova Sessione</button>
         </div>
     </div>
 
-    <script>
+<script>
 class PitchDetector {
     constructor(config = {}) {
         this.audioContext = null;
@@ -713,73 +238,86 @@ class PitchDetector {
         this.onPitchDetected = null;
         this.onVolumeChange = null;
         this.lastDetectedNote = null;
-        
+
+        this.highpass = null; // filters
+        this.notch50 = null;
+
         this.A4 = 440;
-        this.noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-        
-        // CONFIGURAZIONE PERSONALIZZABILE
+        this.noteNames = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+
+        // Config
         this.volumeThreshold = config.volumeThreshold || 0.18;
         this.requiredStableDetections = config.stability || 3;
         this.spikeMultiplier = config.spikeMultiplier || 2.2;
         this.cooldownPeriod = config.cooldown || 600;
-        
-        // GATE per stabilità segnale
+
+        // Stability & gating
         this.noteStabilityBuffer = [];
-        
-        // Flag per evitare auto-start
         this.isInitialized = false;
-        
-        // WARM-UP: ignora i primi secondi di ascolto
         this.warmupStartTime = null;
-        this.warmupDuration = 500; // 500ms di warm-up
-        
-        // Tracciamento volume massimo per calibrazione dinamica
+        this.warmupDuration = 500; // ms
         this.volumeHistory = [];
         this.maxVolumeHistory = 20;
         this.currentVolume = 0;
-        
-        // COOLDOWN: tempo minimo tra due note rilevate
         this.lastNoteTime = 0;
-        
-        // SILENCE GATE: richiede un periodo di silenzio tra le note
-        this.silenceFramesRequired = Math.max(3, Math.floor(this.requiredStableDetections * 0.8));
-        this.currentSilenceFrames = 0;
+
+        // New: time-based silence arming
+        this.requiredSilenceMs = 250;
+        this.silenceSince = null;
         this.readyForNextNote = true;
-        
-        // FILTRO FREQUENZE: limiti per PIANOFORTE (A0 = 27.5 Hz a C8 = 4186 Hz)
-        this.minPianoFreq = 25; // Leggermente sotto A0
-        this.maxPianoFreq = 4500; // Leggermente sopra C8
-        
-        console.log('🎛️ PitchDetector config:', {
-            volumeThreshold: this.volumeThreshold,
-            stability: this.requiredStableDetections,
-            spike: this.spikeMultiplier + 'x',
-            cooldown: this.cooldownPeriod + 'ms'
+
+        // New: EMA attack detector
+        this.emaVolume = 0;
+        this.emaAlpha = 0.2;
+        this.minAttackRise = 0.04;
+
+        // New: anti-harmonics
+        this.lastPitchHz = null;
+
+        // Frequency range (piano)
+        this.minPianoFreq = 25;
+        this.maxPianoFreq = 4500;
+
+        document.addEventListener('visibilitychange', () => {
+            if (!this.audioContext) return;
+            if (document.visibilityState === 'visible' && this.audioContext.state === 'suspended') {
+                this.audioContext.resume();
+            }
         });
+
+        console.log('🎛️ PitchDetector config:', { volumeThreshold:this.volumeThreshold, stability:this.requiredStableDetections, spike:this.spikeMultiplier+'x', cooldown:this.cooldownPeriod+'ms' });
     }
 
     async initialize() {
         try {
             this.mediaStream = await navigator.mediaDevices.getUserMedia({
-                audio: {
-                    echoCancellation: false,
-                    noiseSuppression: false,
-                    autoGainControl: false
-                }
+                audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:false }
             });
 
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+            // === Filters chain ===
+            this.highpass = this.audioContext.createBiquadFilter();
+            this.highpass.type = 'highpass';
+            this.highpass.frequency.value = 70;
+
+            this.notch50 = this.audioContext.createBiquadFilter();
+            this.notch50.type = 'notch';
+            this.notch50.frequency.value = 50;
+            this.notch50.Q = 20;
+
             this.analyser = this.audioContext.createAnalyser();
-            this.microphone = this.audioContext.createMediaStreamSource(this.mediaStream);
-            
             this.analyser.fftSize = 4096;
             this.buffer = new Float32Array(this.analyser.fftSize);
-            
-            this.microphone.connect(this.analyser);
-            
+
+            this.microphone = this.audioContext.createMediaStreamSource(this.mediaStream);
+            // mic -> highpass -> notch50 -> analyser
+            this.microphone.connect(this.highpass);
+            this.highpass.connect(this.notch50);
+            this.notch50.connect(this.analyser);
+
             this.isInitialized = true;
-            this.isListening = false; // IMPORTANTE: NON inizia automaticamente
-            
+            this.isListening = false;
             console.log('🎤 Microphone initialized - NOT listening yet');
             return true;
         } catch (error) {
@@ -788,16 +326,19 @@ class PitchDetector {
         }
     }
 
-    startListening(callback) {
+    async startListening(callback) {
         this.onPitchDetected = callback;
         this.isListening = true;
         this.lastDetectedNote = null;
-        this.noteStabilityBuffer = []; // Reset del buffer di stabilità
-        this.volumeHistory = []; // Reset dello storico volume
-        this.warmupStartTime = Date.now(); // Inizia warm-up
-        this.lastNoteTime = 0; // Reset cooldown
-        this.currentSilenceFrames = 0; // Reset silence gate
-        this.readyForNextNote = true; // Pronto per la prima nota
+        this.noteStabilityBuffer = [];
+        this.volumeHistory = [];
+        this.warmupStartTime = Date.now();
+        this.lastNoteTime = 0;
+        this.silenceSince = performance.now(); // start armed as soon as silence holds
+        this.readyForNextNote = true;
+        if (this.audioContext && this.audioContext.state === 'suspended') {
+            await this.audioContext.resume();
+        }
         console.log('👂 Started listening (warming up for 500ms...)');
         this.detectPitch();
     }
@@ -810,106 +351,106 @@ class PitchDetector {
         this.volumeHistory = [];
         this.warmupStartTime = null;
         this.lastNoteTime = 0;
-        this.currentSilenceFrames = 0;
+        this.silenceSince = null;
         this.readyForNextNote = true;
         console.log('🛑 Stopped listening');
     }
 
+    centsDiff(f1, f2) {
+        return 1200 * Math.log2(f1 / f2);
+    }
+
     detectPitch() {
-        // CONTROLLO FONDAMENTALE: se non stiamo ascoltando, NON fare nulla
-        if (!this.isListening || !this.analyser || !this.isInitialized) {
-            return; // NON continuare il loop se non stiamo ascoltando
-        }
-        
-        // WARM-UP: ignora i primi 500ms
+        if (!this.isListening || !this.analyser || !this.isInitialized) return;
+
         const timeSinceStart = Date.now() - this.warmupStartTime;
         if (timeSinceStart < this.warmupDuration) {
             requestAnimationFrame(() => this.detectPitch());
             return;
         }
-        
+
         this.analyser.getFloatTimeDomainData(this.buffer);
-        
-        let sum = 0;
-        for (let i = 0; i < this.buffer.length; i++) {
-            sum += this.buffer[i] * this.buffer[i];
-        }
+
+        // RMS volume
+        let sum = 0; for (let i=0;i<this.buffer.length;i++) sum += this.buffer[i]*this.buffer[i];
         const volume = Math.sqrt(sum / this.buffer.length);
         this.currentVolume = volume;
-        
-        // Traccia lo storico del volume
-        this.volumeHistory.push(volume);
-        if (this.volumeHistory.length > this.maxVolumeHistory) {
-            this.volumeHistory.shift();
-        }
-        
-        // Calcola la media del volume recente
-        const avgVolume = this.volumeHistory.reduce((a, b) => a + b, 0) / this.volumeHistory.length;
-        
-        if (this.onVolumeChange) {
-            this.onVolumeChange(volume);
-        }
-        
-        // SILENCE GATE: traccia periodi di silenzio
-        const silenceThreshold = this.volumeThreshold * 0.35; // Dinamico: 35% della soglia volume
+
+        // EMA + attack
+        this.emaVolume = this.emaAlpha * volume + (1 - this.emaAlpha) * this.emaVolume;
+        const attack = volume - this.emaVolume;
+
+        // history & avg
+        this.volumeHistory.push(volume); if (this.volumeHistory.length > this.maxVolumeHistory) this.volumeHistory.shift();
+        const avgVolume = this.volumeHistory.reduce((a,b)=>a+b,0) / this.volumeHistory.length;
+
+        if (this.onVolumeChange) this.onVolumeChange(volume, {attack});
+
+        // Silence arming (time-based)
+        const silenceThreshold = Math.min(this.volumeThreshold * 0.4, 0.02);
+        const now = performance.now();
         if (volume < silenceThreshold) {
-            this.currentSilenceFrames++;
-            if (this.currentSilenceFrames >= this.silenceFramesRequired) {
-                this.readyForNextNote = true; // Reset dopo silenzio
-            }
+            if (this.silenceSince === null) this.silenceSince = now;
         } else {
-            this.currentSilenceFrames = 0;
+            this.silenceSince = null;
         }
-        
-        // COOLDOWN: controlla se è passato abbastanza tempo dall'ultima nota
+        const armed = this.silenceSince !== null && (now - this.silenceSince) >= this.requiredSilenceMs;
+
+        // Cooldown
         const timeSinceLastNote = Date.now() - this.lastNoteTime;
         const inCooldown = timeSinceLastNote < this.cooldownPeriod;
-        
-        // CONTROLLO VOLUME PRIMA DI RILEVARE NOTE - OTTIMIZZATO PER PIANO
-        // 1. Il volume corrente deve superare la soglia
-        // 2. Il volume corrente deve essere significativamente più alto della media (spike detection)
-        // 3. Deve essere pronto per la prossima nota (dopo silenzio)
-        // 4. Non deve essere in cooldown
-        const volumeSpike = volume > (avgVolume * this.spikeMultiplier); // Mobile usa 3.0x, Desktop 2.2x
-        
-        if (volume < this.volumeThreshold || !volumeSpike || inCooldown || !this.readyForNextNote) {
-            // Pulisci il buffer se non sono soddisfatte le condizioni
+
+        // Spike gating + attack
+        const volumeSpike = volume > (avgVolume * this.spikeMultiplier);
+        const hasAttack = attack > this.minAttackRise;
+
+        // Debug UI
+        const dbg = document.getElementById('volumeDebug');
+        if (dbg && dbg.style.display !== 'none') {
+            const v = document.getElementById('volumeDebugValue');
+            const af = document.getElementById('armedFlag');
+            const at = document.getElementById('attackVal');
+            if (v) v.textContent = volume.toFixed(3);
+            if (af) af.textContent = armed;
+            if (at) at.textContent = attack.toFixed(3);
+        }
+
+        if (volume < this.volumeThreshold || !volumeSpike || inCooldown || !armed || !hasAttack) {
             this.noteStabilityBuffer = [];
             requestAnimationFrame(() => this.detectPitch());
             return;
         }
-        
+
         const pitch = this.autoCorrelate(this.buffer, this.audioContext.sampleRate);
-        
-        // FILTRO FREQUENZE: accetta solo note nel range del pianoforte
-        if (pitch && pitch >= this.minPianoFreq && pitch <= this.maxPianoFreq) {
-            const note = this.frequencyToNote(pitch);
-            
-            // GATE DI STABILITÀ: aggiungi al buffer
-            this.noteStabilityBuffer.push(note.note);
-            
-            // Mantieni solo le ultime N rilevazioni
-            if (this.noteStabilityBuffer.length > this.requiredStableDetections) {
-                this.noteStabilityBuffer.shift();
+
+        if (pitch !== -1 && pitch && pitch >= this.minPianoFreq && pitch <= this.maxPianoFreq) {
+            // Anti-harmonics: ignore 2x / 0.5x of the last
+            if (this.lastPitchHz) {
+                const ratio = pitch / this.lastPitchHz;
+                if (Math.abs(ratio - 2.0) < 0.03 || Math.abs(ratio - 0.5) < 0.03) {
+                    requestAnimationFrame(() => this.detectPitch());
+                    return;
+                }
             }
-            
-            // Controlla se abbiamo abbastanza rilevazioni stabili della stessa nota
+
+            const note = this.frequencyToNote(pitch);
+            this.noteStabilityBuffer.push({ name: note.note, freq: pitch });
+            if (this.noteStabilityBuffer.length > this.requiredStableDetections) this.noteStabilityBuffer.shift();
+
             if (this.noteStabilityBuffer.length >= this.requiredStableDetections) {
-                const allSame = this.noteStabilityBuffer.every(n => n === this.noteStabilityBuffer[0]);
-                
-                if (allSame && (!this.lastDetectedNote || this.lastDetectedNote !== note.note)) {
-                    console.log(`🎵 ${note.note} (${pitch.toFixed(2)} Hz, vol: ${volume.toFixed(3)}, avg: ${avgVolume.toFixed(3)}, cooldown: ${timeSinceLastNote}ms)`);
+                const first = this.noteStabilityBuffer[0];
+                const allSameName = this.noteStabilityBuffer.every(n => n.name === first.name);
+                const allCloseFreq = this.noteStabilityBuffer.every(n => Math.abs(this.centsDiff(n.freq, first.freq)) < 35);
+
+                if (allSameName && allCloseFreq && (!this.lastDetectedNote || this.lastDetectedNote !== note.note)) {
                     this.lastDetectedNote = note.note;
-                    this.lastNoteTime = Date.now(); // Inizia cooldown
-                    this.readyForNextNote = false; // Richiede silenzio prima della prossima
-                    
-                    if (this.onPitchDetected) {
-                        this.onPitchDetected(note);
-                    }
+                    this.lastPitchHz = pitch;
+                    this.lastNoteTime = Date.now();
+                    this.readyForNextNote = false;
+                    if (this.onPitchDetected) this.onPitchDetected(note);
                 }
             }
         } else {
-            // Se non c'è pitch valido, pulisci il buffer
             this.noteStabilityBuffer = [];
         }
 
@@ -919,89 +460,40 @@ class PitchDetector {
     autoCorrelate(buffer, sampleRate) {
         let size = buffer.length;
         let maxSamples = Math.floor(size / 2);
-        let bestOffset = -1;
-        let bestCorrelation = 0;
         let rms = 0;
-        
-        for (let i = 0; i < size; i++) {
-            let val = buffer[i];
-            rms += val * val;
-        }
-        rms = Math.sqrt(rms / size);
-        
-        // SOGLIA RMS - usa la stessa soglia del volume per consistenza
+        for (let i=0;i<size;i++){ const v=buffer[i]; rms += v*v; }
+        rms = Math.sqrt(rms/size);
         if (rms < this.volumeThreshold) return -1;
-        
-        let correlations = [];
-        let lastCorrelation = 1;
-        
-        for (let offset = 1; offset < maxSamples; offset++) {
-            let correlation = 0;
 
-            for (let i = 0; i < maxSamples; i++) {
-                correlation += Math.abs(buffer[i] - buffer[i + offset]);
-            }
-            
+        let bestOffset = -1; let bestCorrelation = 0; let lastCorrelation = 1;
+        for (let offset=1; offset<maxSamples; offset++) {
+            let correlation = 0;
+            for (let i=0;i<maxSamples;i++) correlation += Math.abs(buffer[i] - buffer[i+offset]);
             correlation = 1 - (correlation / maxSamples);
-            
-            // SOGLIA CORRELAZIONE - dinamica basata sulla sensibilità
-            const correlationThreshold = 0.85 + (this.volumeThreshold - 0.18) * 0.2; // Più alta per soglie volume alte
+            const correlationThreshold = 0.85 + (this.volumeThreshold - 0.18) * 0.2;
             if (correlation > correlationThreshold && correlation > lastCorrelation) {
-                correlations.push({ offset: offset, correlation: correlation });
+                bestCorrelation = correlation; bestOffset = offset;
             }
-            
             lastCorrelation = correlation;
         }
-        
-        if (correlations.length === 0) return -1;
-        
-        correlations.sort((a, b) => b.correlation - a.correlation);
-        
-        bestCorrelation = correlations[0].correlation;
-        bestOffset = correlations[0].offset;
-        
-        // SOGLIA CORRELAZIONE - dinamica basata sulla sensibilità
-        const correlationThreshold = 0.85 + (this.volumeThreshold - 0.18) * 0.2;
-        if (bestCorrelation > correlationThreshold && bestOffset > 0) {
-            for (let i = 1; i < correlations.length && i < 3; i++) {
-                if (correlations[i].offset < bestOffset * 0.6) {
-                    if (correlations[i].correlation > bestCorrelation * 0.9) {
-                        bestOffset = correlations[i].offset;
-                        bestCorrelation = correlations[i].correlation;
-                        break;
-                    }
-                }
-            }
-            
-            if (bestOffset < maxSamples - 1 && bestOffset > 0) {
-                let y1 = buffer[bestOffset - 1];
-                let y2 = buffer[bestOffset];
-                let y3 = buffer[bestOffset + 1];
-                let shift = (y3 - y1) / (2 * (2 * y2 - y1 - y3));
-                
-                if (isFinite(shift) && Math.abs(shift) < 1) {
-                    return sampleRate / (bestOffset + shift);
-                }
-            }
-            
-            return sampleRate / bestOffset;
+        if (bestOffset === -1) return -1;
+
+        if (bestOffset < maxSamples-1 && bestOffset > 0) {
+            const y1 = buffer[bestOffset-1];
+            const y2 = buffer[bestOffset];
+            const y3 = buffer[bestOffset+1];
+            const shift = (y3 - y1) / (2 * (2*y2 - y1 - y3));
+            if (isFinite(shift) && Math.abs(shift) < 1) return sampleRate / (bestOffset + shift);
         }
-        
-        return -1;
+        return sampleRate / bestOffset;
     }
 
     frequencyToNote(frequency) {
         const noteNum = 12 * (Math.log(frequency / this.A4) / Math.log(2)) + 69;
-        const roundedNoteNum = Math.round(noteNum);
-        const noteName = this.noteNames[roundedNoteNum % 12];
-        const octave = Math.floor(roundedNoteNum / 12) - 1;
-        
-        return {
-            frequency: frequency,
-            note: noteName,
-            octave: octave,
-            fullNote: `${noteName}${octave}`
-        };
+        const rounded = Math.round(noteNum);
+        const noteName = this.noteNames[rounded % 12];
+        const octave = Math.floor(rounded / 12) - 1;
+        return { frequency, note: noteName, octave, fullNote: `${noteName}${octave}` };
     }
 
     stop() {
@@ -1009,69 +501,48 @@ class PitchDetector {
         this.isInitialized = false;
         this.noteStabilityBuffer = [];
         this.lastDetectedNote = null;
-        
-        if (this.mediaStream) {
-            this.mediaStream.getTracks().forEach(track => track.stop());
-            this.mediaStream = null;
-        }
-        
-        if (this.audioContext && this.audioContext.state !== 'closed') {
-            this.audioContext.close();
-            this.audioContext = null;
-        }
-        
-        this.analyser = null;
-        this.microphone = null;
-        
+        this.lastPitchHz = null;
+        if (this.mediaStream) { this.mediaStream.getTracks().forEach(t => t.stop()); this.mediaStream = null; }
+        if (this.audioContext && this.audioContext.state !== 'closed') { this.audioContext.close(); this.audioContext = null; }
+        this.analyser = null; this.microphone = null; this.highpass = null; this.notch50 = null;
         console.log('🔇 Audio system completely stopped');
     }
 }
 
 class IntervalTrainerApp {
     constructor() {
-        this.pitchDetector = null; // Sarà creato con la config all'avvio
-        this.currentQuiz = 0;
-        this.totalQuizzes = 10;
-        this.correctAnswers = 0;
-        this.wrongAnswers = 0;
-        this.selectedScale = null;
-        this.currentQuestion = null;
-        this.lastDegreeKey = null; // Traccia l'ultimo grado chiesto
-        this.isWaitingForAnswer = false;
-        this.detectedNotes = [];
-        this.noteDetectionTimeout = null;
-        
-        // Configurazione sensibilità
-        this.sensitivityConfig = {
-            volumeThreshold: 0.18,
-            stability: 3,
-            spikeMultiplier: 2.2,
-            cooldown: 600
-        };
+        this.pitchDetector = null;
+        this.currentQuiz = 0; this.totalQuizzes = 10;
+        this.correctAnswers = 0; this.wrongAnswers = 0;
+        this.selectedScale = null; this.currentQuestion = null;
+        this.lastDegreeKey = null; this.isWaitingForAnswer = false;
+        this.detectedNotes = []; this.noteDetectionTimeout = null;
+
+        this.sensitivityConfig = { volumeThreshold:0.18, stability:3, spikeMultiplier:2.2, cooldown:600 };
 
         this.scales = {
-            'C': { display: 'Do', notes: ['C', 'D', 'E', 'F', 'G', 'A', 'B'] },
-            'G': { display: 'Sol', notes: ['G', 'A', 'B', 'C', 'D', 'E', 'F#'] },
-            'D': { display: 'Re', notes: ['D', 'E', 'F#', 'G', 'A', 'B', 'C#'] },
-            'A': { display: 'La', notes: ['A', 'B', 'C#', 'D', 'E', 'F#', 'G#'] },
-            'E': { display: 'Mi', notes: ['E', 'F#', 'G#', 'A', 'B', 'C#', 'D#'] },
-            'B': { display: 'Si', notes: ['B', 'C#', 'D#', 'E', 'F#', 'G#', 'A#'] },
-            'F#': { display: 'Fa#', notes: ['F#', 'G#', 'A#', 'B', 'C#', 'D#', 'E#'] },
-            'Db': { display: 'Reb', notes: ['Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb', 'C'] },
-            'Ab': { display: 'Lab', notes: ['Ab', 'Bb', 'C', 'Db', 'Eb', 'F', 'G'] },
-            'Eb': { display: 'Mib', notes: ['Eb', 'F', 'G', 'Ab', 'Bb', 'C', 'D'] },
-            'Bb': { display: 'Sib', notes: ['Bb', 'C', 'D', 'Eb', 'F', 'G', 'A'] },
-            'F': { display: 'Fa', notes: ['F', 'G', 'A', 'Bb', 'C', 'D', 'E'] }
+            'C': { display:'Do', notes:['C','D','E','F','G','A','B'] },
+            'G': { display:'Sol', notes:['G','A','B','C','D','E','F#'] },
+            'D': { display:'Re', notes:['D','E','F#','G','A','B','C#'] },
+            'A': { display:'La', notes:['A','B','C#','D','E','F#','G#'] },
+            'E': { display:'Mi', notes:['E','F#','G#','A','B','C#','D#'] },
+            'B': { display:'Si', notes:['B','C#','D#','E','F#','G#','A#'] },
+            'F#': { display:'Fa#', notes:['F#','G#','A#','B','C#','D#','E#'] },
+            'Db': { display:'Reb', notes:['Db','Eb','F','Gb','Ab','Bb','C'] },
+            'Ab': { display:'Lab', notes:['Ab','Bb','C','Db','Eb','F','G'] },
+            'Eb': { display:'Mib', notes:['Eb','F','G','Ab','Bb','C','D'] },
+            'Bb': { display:'Sib', notes:['Bb','C','D','Eb','F','G','A'] },
+            'F': { display:'Fa', notes:['F','G','A','Bb','C','D','E'] }
         };
 
         this.degrees = {
-            '1': { name: 'Tonica (1)', index: 0 },
-            '2': { name: '2a Maggiore', index: 1 },
-            '3': { name: '3a Maggiore', index: 2 },
-            '4': { name: '4a Giusta', index: 3 },
-            '5': { name: '5a Giusta', index: 4 },
-            '6': { name: '6a Maggiore', index: 5 },
-            '7': { name: '7a Maggiore', index: 6 }
+            '1': { name:'Tonica (1)', index:0 },
+            '2': { name:'2a Maggiore', index:1 },
+            '3': { name:'3a Maggiore', index:2 },
+            '4': { name:'4a Giusta', index:3 },
+            '5': { name:'5a Giusta', index:4 },
+            '6': { name:'6a Maggiore', index:5 },
+            '7': { name:'7a Maggiore', index:6 }
         };
 
         this.initializeUI();
@@ -1089,10 +560,8 @@ class IntervalTrainerApp {
         document.getElementById('stopBtn').addEventListener('click', () => this.stopSession());
         document.getElementById('restartBtn').addEventListener('click', () => this.reset());
         document.getElementById('requestMicBtn').addEventListener('click', () => this.requestMicrophone());
-        
-        // Setup slider controls
+
         this.setupSensitivityControls();
-        
         this.checkMicrophonePermission();
     }
 
@@ -1101,92 +570,50 @@ class IntervalTrainerApp {
         const stabilitySlider = document.getElementById('stabilitySlider');
         const spikeSlider = document.getElementById('spikeSlider');
         const cooldownSlider = document.getElementById('cooldownSlider');
-        
+
         const volumeValue = document.getElementById('volumeValue');
         const stabilityValue = document.getElementById('stabilityValue');
         const spikeValue = document.getElementById('spikeValue');
         const cooldownValue = document.getElementById('cooldownValue');
-        
-        // Imposta preset iniziale in base al dispositivo
+
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        if (isMobile) {
-            this.applyPreset('mobile');
-        } else {
-            this.applyPreset('desktop');
-        }
-        
-        // Event listeners per slider
-        volumeSlider.addEventListener('input', (e) => {
-            this.sensitivityConfig.volumeThreshold = parseFloat(e.target.value);
-            volumeValue.textContent = e.target.value;
-            this.markCustomPreset();
-        });
-        
-        stabilitySlider.addEventListener('input', (e) => {
-            this.sensitivityConfig.stability = parseInt(e.target.value);
-            stabilityValue.textContent = e.target.value;
-            this.markCustomPreset();
-        });
-        
-        spikeSlider.addEventListener('input', (e) => {
-            this.sensitivityConfig.spikeMultiplier = parseFloat(e.target.value);
-            spikeValue.textContent = e.target.value + 'x';
-            this.markCustomPreset();
-        });
-        
-        cooldownSlider.addEventListener('input', (e) => {
-            this.sensitivityConfig.cooldown = parseInt(e.target.value);
-            cooldownValue.textContent = e.target.value;
-            this.markCustomPreset();
-        });
-        
-        // Preset buttons
+        if (isMobile) this.applyPreset('mobile'); else this.applyPreset('desktop');
+
+        volumeSlider.addEventListener('input', (e) => { this.sensitivityConfig.volumeThreshold = parseFloat(e.target.value); volumeValue.textContent = e.target.value; this.markCustomPreset(); });
+        stabilitySlider.addEventListener('input', (e) => { this.sensitivityConfig.stability = parseInt(e.target.value); stabilityValue.textContent = e.target.value; this.markCustomPreset(); });
+        spikeSlider.addEventListener('input', (e) => { this.sensitivityConfig.spikeMultiplier = parseFloat(e.target.value); spikeValue.textContent = e.target.value + 'x'; this.markCustomPreset(); });
+        cooldownSlider.addEventListener('input', (e) => { this.sensitivityConfig.cooldown = parseInt(e.target.value); cooldownValue.textContent = e.target.value; this.markCustomPreset(); });
+
         document.getElementById('presetDesktop').addEventListener('click', () => this.applyPreset('desktop'));
         document.getElementById('presetMobile').addEventListener('click', () => this.applyPreset('mobile'));
         document.getElementById('presetCustom').addEventListener('click', () => this.markCustomPreset());
     }
-    
+
     applyPreset(preset) {
         const presets = {
-            desktop: {
-                volumeThreshold: 0.18,
-                stability: 3,
-                spikeMultiplier: 2.2,
-                cooldown: 600
-            },
-            mobile: {
-                volumeThreshold: 0.30,
-                stability: 4,
-                spikeMultiplier: 3.0,
-                cooldown: 800
-            }
+            desktop: { volumeThreshold:0.18, stability:3, spikeMultiplier:2.2, cooldown:600 },
+            mobile:  { volumeThreshold:0.34, stability:4, spikeMultiplier:3.2, cooldown:950 }
         };
-        
         if (presets[preset]) {
             this.sensitivityConfig = { ...presets[preset] };
             this.updateSliders();
-            
-            // Update active button
-            document.querySelectorAll('.btn-preset').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`preset${preset.charAt(0).toUpperCase() + preset.slice(1)}`).classList.add('active');
+            document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+            document.getElementById(`preset${preset.charAt(0).toUpperCase()+preset.slice(1)}`).classList.add('active');
         }
     }
-    
+
     markCustomPreset() {
-        document.querySelectorAll('.btn-preset').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
         document.getElementById('presetCustom').classList.add('active');
     }
-    
+
     updateSliders() {
         document.getElementById('volumeSlider').value = this.sensitivityConfig.volumeThreshold;
         document.getElementById('volumeValue').textContent = this.sensitivityConfig.volumeThreshold.toFixed(2);
-        
         document.getElementById('stabilitySlider').value = this.sensitivityConfig.stability;
         document.getElementById('stabilityValue').textContent = this.sensitivityConfig.stability;
-        
         document.getElementById('spikeSlider').value = this.sensitivityConfig.spikeMultiplier;
         document.getElementById('spikeValue').textContent = this.sensitivityConfig.spikeMultiplier.toFixed(1) + 'x';
-        
         document.getElementById('cooldownSlider').value = this.sensitivityConfig.cooldown;
         document.getElementById('cooldownValue').textContent = this.sensitivityConfig.cooldown;
     }
@@ -1196,304 +623,159 @@ class IntervalTrainerApp {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             stream.getTracks().forEach(track => track.stop());
             this.showScreen('setup');
-        } catch (error) {
-            this.showScreen('permission');
-        }
+        } catch { this.showScreen('permission'); }
     }
 
     async requestMicrophone() {
         const tempDetector = new PitchDetector(this.sensitivityConfig);
         const initialized = await tempDetector.initialize();
-        if (initialized) {
-            tempDetector.stop();
-            this.showScreen('setup');
-        } else {
-            alert('Impossibile accedere al microfono.');
-        }
+        if (initialized) { tempDetector.stop(); this.showScreen('setup'); } else { alert('Impossibile accedere al microfono.'); }
     }
 
-    showScreen(screenName) {
-        Object.values(this.screens).forEach(screen => screen.classList.remove('active'));
-        this.screens[screenName].classList.add('active');
-    }
+    showScreen(name) { Object.values(this.screens).forEach(s => s.classList.remove('active')); this.screens[name].classList.add('active'); }
 
     async startSession() {
-        const scaleSelect = document.getElementById('scaleSelect');
-        const scaleValue = scaleSelect.value;
-        
+        const scaleValue = document.getElementById('scaleSelect').value;
         if (scaleValue === 'random') {
-            const scaleKeys = Object.keys(this.scales);
-            this.selectedScale = scaleKeys[Math.floor(Math.random() * scaleKeys.length)];
-        } else {
-            this.selectedScale = scaleValue;
-        }
+            const ks = Object.keys(this.scales); this.selectedScale = ks[Math.floor(Math.random()*ks.length)];
+        } else { this.selectedScale = scaleValue; }
 
-        // Crea PitchDetector con la configurazione corrente
         this.pitchDetector = new PitchDetector(this.sensitivityConfig);
-        
-        // Setup volume change callback
-        this.pitchDetector.onVolumeChange = (volume) => {
+        this.pitchDetector.onVolumeChange = (volume, {attack}) => {
             const indicator = document.getElementById('listeningIndicator');
             if (indicator && !indicator.classList.contains('hidden')) {
                 const pulse = indicator.querySelector('.pulse');
                 const threshold = this.sensitivityConfig.volumeThreshold;
-                
                 if (pulse) {
-                    if (volume > threshold * 1.5) {
-                        pulse.style.backgroundColor = '#4caf50'; // Verde: ottimo
-                    } else if (volume > threshold) {
-                        pulse.style.backgroundColor = '#4a90e2'; // Blu: buono (sopra soglia)
-                    } else if (volume > threshold * 0.6) {
-                        pulse.style.backgroundColor = '#ff9800'; // Arancione: debole
-                    } else {
-                        pulse.style.backgroundColor = '#7b68ee'; // Viola: troppo debole
-                    }
+                    if (volume > threshold * 1.5) pulse.style.backgroundColor = '#4caf50';
+                    else if (volume > threshold)    pulse.style.backgroundColor = '#4a90e2';
+                    else if (volume > threshold*0.6) pulse.style.backgroundColor = '#ff9800';
+                    else pulse.style.backgroundColor = '#7b68ee';
                 }
             }
+            // optional live numbers
+            const dbg = document.getElementById('volumeDebug');
+            if (dbg && dbg.style.display !== 'none') {
+                const v = document.getElementById('volumeDebugValue');
+                const at = document.getElementById('attackVal');
+                if (v) v.textContent = volume.toFixed(3);
+                if (at) at.textContent = attack.toFixed(3);
+            }
         };
-        
+
         const initialized = await this.pitchDetector.initialize();
-        if (!initialized) {
-            alert('Impossibile accedere al microfono.');
-            return;
-        }
+        if (!initialized) { alert('Impossibile accedere al microfono.'); return; }
 
-        this.currentQuiz = 0;
-        this.correctAnswers = 0;
-        this.wrongAnswers = 0;
-        this.lastDegreeKey = null; // Reset per nuova sessione
-
+        this.currentQuiz = 0; this.correctAnswers = 0; this.wrongAnswers = 0; this.lastDegreeKey = null;
         document.getElementById('currentScale').textContent = this.scales[this.selectedScale].display + ' Maggiore';
-        
         this.showScreen('quiz');
         this.nextQuestion();
     }
 
     nextQuestion() {
         this.currentQuiz++;
-        
-        if (this.currentQuiz > this.totalQuizzes) {
-            this.showResults();
-            return;
-        }
-
+        if (this.currentQuiz > this.totalQuizzes) { this.showResults(); return; }
         document.getElementById('quizCounter').textContent = `${this.currentQuiz}/${this.totalQuizzes}`;
-        document.getElementById('progressFill').style.width = `${(this.currentQuiz / this.totalQuizzes) * 100}%`;
+        document.getElementById('progressFill').style.width = `${(this.currentQuiz/this.totalQuizzes)*100}%`;
         document.getElementById('correctCount').textContent = this.correctAnswers;
         document.getElementById('wrongCount').textContent = this.wrongAnswers;
 
         this.currentQuestion = this.generateQuestion();
-        
         document.getElementById('baseNote').textContent = this.scales[this.selectedScale].display + ' Maggiore';
         document.getElementById('targetInterval').textContent = this.currentQuestion.degreeName;
-        
         document.getElementById('feedbackArea').classList.add('hidden');
         document.getElementById('questionArea').style.display = 'block';
-        
         this.startListening();
     }
 
     generateQuestion() {
         const scale = this.scales[this.selectedScale];
         const degreeKeys = Object.keys(this.degrees);
-        
-        // Filtra il grado precedente per evitare ripetizioni
-        let availableDegrees = degreeKeys;
-        if (this.lastDegreeKey !== null) {
-            availableDegrees = degreeKeys.filter(key => key !== this.lastDegreeKey);
-        }
-        
-        // Scegli un grado casuale tra quelli disponibili
-        const randomIndex = Math.floor(Math.random() * availableDegrees.length);
-        const degreeKey = availableDegrees[randomIndex];
-        
-        // Salva il grado corrente per la prossima volta
+        let available = degreeKeys;
+        if (this.lastDegreeKey !== null) available = degreeKeys.filter(k => k !== this.lastDegreeKey);
+        const degreeKey = available[Math.floor(Math.random()*available.length)];
         this.lastDegreeKey = degreeKey;
-        
         const degree = this.degrees[degreeKey];
         const targetNote = scale.notes[degree.index];
-        
-        return {
-            scaleName: scale.display + ' Maggiore',
-            degreeNumber: degreeKey,
-            degreeName: degree.name,
-            targetNote: this.normalizeNote(targetNote),
-            targetNoteDisplay: this.displayNote(targetNote)
-        };
+        return { scaleName: scale.display + ' Maggiore', degreeNumber: degreeKey, degreeName: degree.name, targetNote: this.normalizeNote(targetNote), targetNoteDisplay: this.displayNote(targetNote) };
     }
 
-    normalizeNote(note) {
-        const flatsToSharps = {
-            'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#', 'E#': 'F'
-        };
-        return flatsToSharps[note] || note;
-    }
-
-    displayNote(note) {
-        const noteMap = {
-            'C': 'Do', 'C#': 'Do#', 'Db': 'Reb',
-            'D': 'Re', 'D#': 'Re#', 'Eb': 'Mib',
-            'E': 'Mi', 'E#': 'Fa',
-            'F': 'Fa', 'F#': 'Fa#', 'Gb': 'Solb',
-            'G': 'Sol', 'G#': 'Sol#', 'Ab': 'Lab',
-            'A': 'La', 'A#': 'La#', 'Bb': 'Sib',
-            'B': 'Si', 'B#': 'Do'
-        };
-        return noteMap[note] || note;
-    }
+    normalizeNote(note) { const flatsToSharps = { 'Db':'C#','Eb':'D#','Gb':'F#','Ab':'G#','Bb':'A#','E#':'F' }; return flatsToSharps[note] || note; }
+    displayNote(note)   { const m = { 'C':'Do','C#':'Do#','Db':'Reb','D':'Re','D#':'Re#','Eb':'Mib','E':'Mi','E#':'Fa','F':'Fa','F#':'Fa#','Gb':'Solb','G':'Sol','G#':'Sol#','Ab':'Lab','A':'La','A#':'La#','Bb':'Sib','B':'Si','B#':'Do' }; return m[note] || note; }
 
     startListening() {
         this.isWaitingForAnswer = true;
         this.detectedNotes = [];
-        
         document.getElementById('listeningIndicator').classList.remove('hidden');
         document.getElementById('detectedNoteDisplay').textContent = '';
-        
+        // debug panel toggle: set display to 'block' to see live values
+        // document.getElementById('volumeDebug').style.display = 'block';
+
         this.pitchDetector.startListening((noteData) => {
             if (!this.isWaitingForAnswer) return;
-            
             const displayElement = document.getElementById('detectedNoteDisplay');
-            if (displayElement) {
-                displayElement.textContent = this.displayNote(noteData.note);
-            }
-            
+            if (displayElement) displayElement.textContent = this.displayNote(noteData.note);
             this.detectedNotes.push(noteData.note);
-            console.log(`📝 ${noteData.note} (${this.detectedNotes.length})`);
-            
-            if (this.noteDetectionTimeout) {
-                clearTimeout(this.noteDetectionTimeout);
-            }
-            
+            if (this.noteDetectionTimeout) clearTimeout(this.noteDetectionTimeout);
             if (this.detectedNotes.length >= 3) {
-                this.noteDetectionTimeout = setTimeout(() => {
-                    this.evaluateAnswer();
-                }, 1000);
+                this.noteDetectionTimeout = setTimeout(() => { this.evaluateAnswer(); }, 1000);
             }
         });
     }
 
     evaluateAnswer() {
-        if (!this.isWaitingForAnswer || this.detectedNotes.length < 3) {
-            console.log(`⚠️ Not enough (${this.detectedNotes.length}/3)`);
-            return;
-        }
-        
+        if (!this.isWaitingForAnswer || this.detectedNotes.length < 3) return;
         this.isWaitingForAnswer = false;
         this.pitchDetector.stopListening();
         document.getElementById('listeningIndicator').classList.add('hidden');
-        
         const detectedNote = this.getMostCommonNote(this.detectedNotes);
         const normalizedDetected = this.normalizeNote(detectedNote);
         const normalizedTarget = this.normalizeNote(this.currentQuestion.targetNote);
-        
-        console.log(`🎯 Target: ${normalizedTarget}, Got: ${normalizedDetected}`);
-        
         const isCorrect = normalizedDetected === normalizedTarget;
-        
         this.showFeedback(isCorrect, detectedNote);
-        
-        if (isCorrect) {
-            this.correctAnswers++;
-            setTimeout(() => this.nextQuestion(), 1500);
-        } else {
-            this.wrongAnswers++;
-            setTimeout(() => this.nextQuestion(), 3000);
-        }
+        if (isCorrect) { this.correctAnswers++; setTimeout(()=>this.nextQuestion(), 1500); }
+        else { this.wrongAnswers++; setTimeout(()=>this.nextQuestion(), 3000); }
     }
 
     getMostCommonNote(notes) {
         if (notes.length === 0) return null;
-        
-        const counts = {};
-        notes.forEach(note => {
-            counts[note] = (counts[note] || 0) + 1;
-        });
-        
-        let maxCount = 0;
-        let mostCommon = notes[0];
-        
-        Object.keys(counts).forEach(note => {
-            if (counts[note] > maxCount) {
-                maxCount = counts[note];
-                mostCommon = note;
-            }
-        });
-        
-        console.log('📊', counts, '→', mostCommon);
-        
-        return mostCommon;
+        const counts = {}; notes.forEach(n => counts[n] = (counts[n]||0)+1);
+        return Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];
     }
 
     showFeedback(isCorrect, detectedNote) {
         const feedbackArea = document.getElementById('feedbackArea');
         const feedbackIcon = document.getElementById('feedbackIcon');
         const feedbackText = document.getElementById('feedbackText');
-        
         document.getElementById('questionArea').style.display = 'none';
-        feedbackArea.classList.remove('hidden', 'correct', 'wrong');
-        
+        feedbackArea.classList.remove('hidden','correct','wrong');
         if (isCorrect) {
-            feedbackArea.classList.add('correct');
-            feedbackIcon.textContent = '✓';
-            feedbackText.innerHTML = `
-                <div>Corretto!</div>
-                <div class="feedback-detail">Hai suonato: ${this.displayNote(detectedNote)}</div>
-            `;
+            feedbackArea.classList.add('correct'); feedbackIcon.textContent = '✓';
+            feedbackText.innerHTML = `<div>Corretto!</div><div class="feedback-detail">Hai suonato: ${this.displayNote(detectedNote)}</div>`;
         } else {
-            feedbackArea.classList.add('wrong');
-            feedbackIcon.textContent = '✗';
-            feedbackText.innerHTML = `
-                <div>Sbagliato!</div>
-                <div class="feedback-detail">Hai suonato: ${this.displayNote(detectedNote)}</div>
-                <div class="feedback-detail">Il ${this.currentQuestion.degreeName} di ${this.currentQuestion.scaleName} è: ${this.currentQuestion.targetNoteDisplay}</div>
-            `;
+            feedbackArea.classList.add('wrong'); feedbackIcon.textContent = '✗';
+            feedbackText.innerHTML = `<div>Sbagliato!</div><div class="feedback-detail">Hai suonato: ${this.displayNote(detectedNote)}</div><div class="feedback-detail">Il ${this.currentQuestion.degreeName} di ${this.currentQuestion.scaleName} è: ${this.currentQuestion.targetNoteDisplay}</div>`;
         }
     }
 
-    stopSession() {
-        if (this.pitchDetector) {
-            this.pitchDetector.stop();
-        }
-        this.showResults();
-    }
+    stopSession() { if (this.pitchDetector) this.pitchDetector.stop(); this.showResults(); }
 
     showResults() {
-        if (this.pitchDetector) {
-            this.pitchDetector.stop();
-        }
-        
-        const accuracy = this.totalQuizzes > 0 
-            ? Math.round((this.correctAnswers / this.totalQuizzes) * 100) 
-            : 0;
-        
+        if (this.pitchDetector) this.pitchDetector.stop();
+        const accuracy = this.totalQuizzes > 0 ? Math.round((this.correctAnswers/this.totalQuizzes)*100) : 0;
         document.getElementById('finalCorrect').textContent = this.correctAnswers;
         document.getElementById('finalWrong').textContent = this.wrongAnswers;
         document.getElementById('finalAccuracy').textContent = accuracy + '%';
-        
         this.showScreen('results');
     }
 
-    reset() {
-        if (this.pitchDetector) {
-            this.pitchDetector.stop();
-        }
-        this.currentQuiz = 0;
-        this.correctAnswers = 0;
-        this.wrongAnswers = 0;
-        this.lastDegreeKey = null; // Reset per nuova sessione
-        this.showScreen('setup');
-    }
+    reset() { if (this.pitchDetector) this.pitchDetector.stop(); this.currentQuiz=0; this.correctAnswers=0; this.wrongAnswers=0; this.lastDegreeKey=null; this.showScreen('setup'); }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 App loaded - Version 6.0 MANUAL CONTROLS');
-    console.log('🎚️ Sensitivity controls available in setup screen');
-    console.log('🎹 Optimized for piano/keyboard detection');
-    console.log('🎼 Frequency range: 25-4500 Hz (A0 to C8)');
-    console.log('🔄 No consecutive degree repeats');
-    console.log('💾 Settings applied when session starts');
+    console.log('🚀 App loaded - Version 6.1 (anti-sustain patches)');
     window.app = new IntervalTrainerApp();
 });
-    </script>
+</script>
 </body>
 </html>
