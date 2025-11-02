@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -7,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1a1a2e">
-<title>Scale Degree Trainer - Piano v6.2 (YIN)</title>
+<title>Scale Degree Trainer - Piano v6.3 (iOS Fallback + YIN)</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--primary-color:#4a90e2;--secondary-color:#7b68ee;--success-color:#4caf50;--error-color:#f44336;--bg-dark:#1a1a2e;--bg-card:#16213e;--text-primary:#fff;--text-secondary:#a0a0a0}
@@ -68,11 +67,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
 .score-item{background:rgba(74,144,226,.1);padding:20px;border-radius:12px}
 .score-item-value{font-size:2rem;font-weight:700;color:var(--primary-color)}
 .score-item-label{color:var(--text-secondary);margin-top:5px}
-@media (max-width:768px){
- #setupScreen h1{font-size:2rem}
- .degree-question{font-size:2.5rem}
- .score-breakdown{grid-template-columns:1fr}
-}
+@media (max-width:768px){#setupScreen h1{font-size:2rem}.degree-question{font-size:2.5rem}.score-breakdown{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -216,8 +211,12 @@ class IntervalTrainerApp{
 
     // Audio chain
     this.audioContext=null; this.stream=null; this.analyser=null; this.dataArray=null;
-    this.hp=null; this.lp=null; // filters
+    this.hp=null; this.lp=null; this.scriptNode=null; this.muteNode=null;
     this.isListening=false;
+
+    // iOS fallback
+    this.isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    this.useScriptNode = this.isIOS; // su iOS usiamo ScriptProcessorNode
 
     // Tuning
     this.volumeThreshold=0.04; this.requiredStableDetections=3; this.spikeMultiplier=1.6; this.cooldownPeriod=500;
@@ -229,6 +228,7 @@ class IntervalTrainerApp{
     this.silenceFramesRequired=2; this.currentSilenceFrames=0; this.readyForNextNote=true;
     this.minPianoFreq=25; this.maxPianoFreq=4200;
     this.detectedNotes=[]; this.minDetections=4;
+
     this.degreeNames=['I','II','III','IV','V','VI','VII'];
 
     this.scales={
@@ -256,9 +256,10 @@ class IntervalTrainerApp{
     document.getElementById('presetMobile').addEventListener('click',()=>this.applyPreset('mobile'));
     document.getElementById('presetCustom').addEventListener('click',()=>this.applyPreset('custom'));
 
-    // iOS resume AudioContext
+    // iOS: prova a riprendere l'audio dopo un tap
     document.body.addEventListener('touchend',async()=>{
-      if(this.audioContext && this.audioContext.state==='suspended'){ try{await this.audioContext.resume()}catch(_){}}},{passive:true});
+      if(this.audioContext && this.audioContext.state==='suspended'){ try{await this.audioContext.resume()}catch(_){ } }
+    },{passive:true});
   }
 
   initSliders(){
@@ -295,30 +296,121 @@ class IntervalTrainerApp{
     if(this.audioContext.state==='suspended'){ try{await this.audioContext.resume()}catch(_){ } }
   }
 
+  // ===== CATENA AUDIO (con fallback iOS) =====
   async buildAudioChain(stream){
     await this.ensureAudioContext();
-    // Filtri per migliorare SNR e togliere DC/rumori infrasuoni
-    this.hp=this.audioContext.createBiquadFilter(); this.hp.type='highpass'; this.hp.frequency.value=30;
-    this.lp=this.audioContext.createBiquadFilter(); this.lp.type='lowpass'; this.lp.frequency.value=4200;
 
-    this.analyser=this.audioContext.createAnalyser();
-    this.analyser.fftSize=8192;
-    this.analyser.smoothingTimeConstant=0.2;
+    // Filtri
+    this.hp=this.audioContext.createBiquadFilter(); this.hp.type='highpass'; this.hp.frequency.value=30;
+    this.lp=this.audioContext.createBiquadFilter(); this.lp.type='lowpass';  this.lp.frequency.value=4200;
 
     const source=this.audioContext.createMediaStreamSource(stream);
-    // source -> HP -> LP -> analyser
-    source.connect(this.hp); this.hp.connect(this.lp); this.lp.connect(this.analyser);
 
-    this.dataArray=new Float32Array(this.analyser.fftSize);
+    if(this.useScriptNode){
+      const bufSize=4096; // stabile su iOS
+      this.scriptNode=(this.audioContext.createScriptProcessor||this.audioContext.createJavaScriptNode).call(this.audioContext,bufSize,1,1);
+      this.muteNode=this.audioContext.createGain(); this.muteNode.gain.value=0;
+
+      // source -> HP -> LP -> Script -> mute -> destination
+      source.connect(this.hp); this.hp.connect(this.lp); this.lp.connect(this.scriptNode);
+      this.scriptNode.connect(this.muteNode); this.muteNode.connect(this.audioContext.destination);
+
+      this.scriptNode.onaudioprocess=(e)=>{
+        const ch=e.inputBuffer.getChannelData(0);
+        const isCalibration=document.getElementById('calibrationScreen').classList.contains('active');
+        this.processAudioBlock(ch,this.audioContext.sampleRate,isCalibration);
+      };
+
+      this.analyser=null; this.dataArray=null; // non usati su iOS
+    }else{
+      // Desktop / non iOS
+      this.analyser=this.audioContext.createAnalyser();
+      this.analyser.fftSize=8192; this.analyser.smoothingTimeConstant=0.2;
+      source.connect(this.hp); this.hp.connect(this.lp); this.lp.connect(this.analyser);
+      this.dataArray=new Float32Array(this.analyser.fftSize);
+    }
+  }
+
+  // ===== Elaborazione audio per blocco (usata da iOS ScriptProcessor) =====
+  processAudioBlock(buffer,sampleRate,isCalibration){
+    // RMS
+    let sum=0; for(let i=0;i<buffer.length;i++) sum+=buffer[i]*buffer[i];
+    const rms=Math.sqrt(sum/buffer.length); this.currentVolume=rms;
+
+    // UI volume
+    if(isCalibration){ const v=document.getElementById('calibrationVolumeValue'); if(v) v.textContent=rms.toFixed(3); }
+    else { const v2=document.getElementById('volumeValue2'); if(v2) v2.textContent=rms.toFixed(3); }
+
+    // warm-up
+    if(!this.warmupStartTime) this.warmupStartTime=Date.now();
+    if(Date.now()-this.warmupStartTime<this.warmupDuration) return;
+
+    // media mobile
+    this.volumeHistory.push(rms); if(this.volumeHistory.length>this.maxVolumeHistory) this.volumeHistory.shift();
+    const avg=this.volumeHistory.reduce((a,b)=>a+b,0)/this.volumeHistory.length;
+
+    // gate silenzio
+    const silenceThreshold=this.volumeThreshold*0.5;
+    if(rms<silenceThreshold){
+      this.currentSilenceFrames++;
+      if(this.currentSilenceFrames>=this.silenceFramesRequired){
+        this.readyForNextNote=true;
+        if(isCalibration){ const d=document.getElementById('calibrationVolumeDot'); if(d) d.classList.remove('active'); const s=document.getElementById('calibrationStatus'); if(s) s.textContent='Suona una nota per testare...'; }
+        else { const d=document.getElementById('volumeDot'); if(d) d.classList.remove('active'); }
+      }
+    }else{ this.currentSilenceFrames=0; }
+
+    const inCooldown=(Date.now()-this.lastNoteTime)<this.cooldownPeriod;
+    const spike = isCalibration ? (rms>this.volumeThreshold) : (rms>(avg*this.spikeMultiplier) || rms>(this.volumeThreshold*1.1));
+    const checksOk=(rms>this.volumeThreshold)&&!inCooldown&&this.readyForNextNote&&spike;
+    if(!checksOk) return;
+
+    // Pitch con YIN
+    const freq=this.yinPitch(buffer,sampleRate);
+    if(isCalibration){ const f=document.getElementById('calibrationFreqValue'); if(f) f.textContent=(freq>0?freq.toFixed(1):'—'); }
+    else { const f2=document.getElementById('freqValue2'); if(f2) f2.textContent=(freq>0?freq.toFixed(1):'—'); }
+
+    if(freq>this.minPianoFreq && freq<this.maxPianoFreq){
+      const note=this.frequencyToNote(freq);
+      if(note){
+        if(isCalibration){
+          const dot=document.getElementById('calibrationVolumeDot'); if(dot) dot.classList.add('active');
+          const st=document.getElementById('calibrationStatus'); if(st) st.textContent='Rilevamento in corso...';
+        }else{
+          const dot=document.getElementById('volumeDot'); if(dot) dot.classList.add('active');
+        }
+
+        this.noteStabilityBuffer.push(note);
+        if(this.noteStabilityBuffer.length>this.requiredStableDetections) this.noteStabilityBuffer.shift();
+
+        const stable=this.noteStabilityBuffer.length===this.requiredStableDetections && this.noteStabilityBuffer.every(n=>n===this.noteStabilityBuffer[0]);
+        if(stable){
+          if(isCalibration){
+            const nEl=document.getElementById('calibrationNote'); if(nEl) nEl.textContent=note;
+            const st=document.getElementById('calibrationStatus'); if(st) st.textContent=`✓ Nota rilevata: ${note}`;
+            this.noteStabilityBuffer=[]; this.readyForNextNote=false; this.lastNoteTime=Date.now();
+          }else{
+            this.detectedNotes.push(note);
+            if(this.detectedNotes.length>=this.minDetections){
+              const finalNote=this.getMostFrequentNote(this.detectedNotes);
+              this.evaluateAnswer(finalNote);
+              this.detectedNotes=[]; this.noteStabilityBuffer=[]; this.readyForNextNote=false; this.lastNoteTime=Date.now();
+            }
+          }
+        }
+      }
+    }
   }
 
   async openCalibration(){
     // reset
-    this.detectedNotes=[]; this.noteStabilityBuffer=[]; this.volumeHistory=[]; this.currentSilenceFrames=0; this.readyForNextNote=true; this.lastNoteTime=0;
+    this.detectedNotes=[]; this.noteStabilityBuffer=[]; this.volumeHistory=[];
+    this.currentSilenceFrames=0; this.readyForNextNote=true; this.lastNoteTime=0; this.warmupStartTime=null;
 
     document.getElementById('setupScreen').classList.remove('active');
     document.getElementById('calibrationScreen').classList.add('active');
 
+    // set da slider
     this.volumeThreshold=parseFloat(document.getElementById('volumeSlider').value);
     this.requiredStableDetections=parseInt(document.getElementById('stabilitySlider').value);
     this.spikeMultiplier=parseFloat(document.getElementById('spikeSlider').value);
@@ -332,53 +424,54 @@ class IntervalTrainerApp{
       const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
       this.stream=stream; await this.buildAudioChain(stream);
       this.isListening=true; this.warmupStartTime=Date.now();
-      this.detectCalibrationPitch();
+      // Se NON iOS, partiamo col loop RAF
+      if(!this.useScriptNode) this.detectCalibrationPitch();
     }catch(err){
       console.error('Mic error (calibration):',err); alert('Impossibile accedere al microfono. Verifica i permessi.');
     }
   }
 
   detectCalibrationPitch(){
-    if(!this.isListening) return;
+    if(!this.isListening || this.useScriptNode) return; // su iOS la calibrazione è gestita da processAudioBlock
 
     this.analyser.getFloatTimeDomainData(this.dataArray);
 
-    // RMS
     let sum=0; for(let i=0;i<this.dataArray.length;i++) sum+=this.dataArray[i]*this.dataArray[i];
     const rms=Math.sqrt(sum/this.dataArray.length); this.currentVolume=rms;
-    const volEl=document.getElementById('calibrationVolumeValue'); if(volEl) volEl.textContent=rms.toFixed(3);
+    const v=document.getElementById('calibrationVolumeValue'); if(v) v.textContent=rms.toFixed(3);
+
+    // warm-up
+    if(Date.now()-this.warmupStartTime<this.warmupDuration){ requestAnimationFrame(()=>this.detectCalibrationPitch()); return; }
 
     // media mobile
     this.volumeHistory.push(rms); if(this.volumeHistory.length>this.maxVolumeHistory) this.volumeHistory.shift();
     const avg=this.volumeHistory.reduce((a,b)=>a+b,0)/this.volumeHistory.length;
 
-    // warm-up
-    if(Date.now()-this.warmupStartTime<this.warmupDuration){ requestAnimationFrame(()=>this.detectCalibrationPitch()); return; }
-
-    // gating molto permissivo in calibrazione
+    // gate
     const silenceThreshold=this.volumeThreshold*0.5;
-    if(rms<silenceThreshold){ this.currentSilenceFrames++; if(this.currentSilenceFrames>=this.silenceFramesRequired){ this.readyForNextNote=true; document.getElementById('calibrationVolumeDot').classList.remove('active'); document.getElementById('calibrationStatus').textContent='Suona una nota per testare...'; } }
+    if(rms<silenceThreshold){ this.currentSilenceFrames++; if(this.currentSilenceFrames>=this.silenceFramesRequired){ this.readyForNextNote=true; const d=document.getElementById('calibrationVolumeDot'); if(d) d.classList.remove('active'); const s=document.getElementById('calibrationStatus'); if(s) s.textContent='Suona una nota per testare...'; } }
     else this.currentSilenceFrames=0;
 
     const inCooldown=(Date.now()-this.lastNoteTime)<this.cooldownPeriod;
-    const checksOk=(rms>this.volumeThreshold) && !inCooldown && this.readyForNextNote; // niente spike in calibrazione
+    const checksOk=(rms>this.volumeThreshold)&&!inCooldown&&this.readyForNextNote; // calib più permissiva
     let freq=-1;
 
     if(checksOk){
-      document.getElementById('calibrationVolumeDot').classList.add('active');
-      // YIN pitch detection
+      const d=document.getElementById('calibrationVolumeDot'); if(d) d.classList.add('active');
+      const s=document.getElementById('calibrationStatus'); if(s) s.textContent='Rilevamento in corso...';
+
       freq=this.yinPitch(this.dataArray,this.audioContext.sampleRate);
-      const freqLabel=document.getElementById('calibrationFreqValue'); if(freqLabel) freqLabel.textContent = (freq>0?freq.toFixed(1):'—');
+      const f=document.getElementById('calibrationFreqValue'); if(f) f.textContent=(freq>0?freq.toFixed(1):'—');
 
       if(freq>this.minPianoFreq && freq<this.maxPianoFreq){
         const note=this.frequencyToNote(freq);
         if(note){
           this.noteStabilityBuffer.push(note);
           if(this.noteStabilityBuffer.length>this.requiredStableDetections) this.noteStabilityBuffer.shift();
-          const allSame=this.noteStabilityBuffer.length===this.requiredStableDetections && this.noteStabilityBuffer.every(n=>n===this.noteStabilityBuffer[0]);
-          if(allSame){
-            document.getElementById('calibrationNote').textContent=note;
-            document.getElementById('calibrationStatus').textContent=`✓ Nota rilevata: ${note}`;
+          const stable=this.noteStabilityBuffer.length===this.requiredStableDetections && this.noteStabilityBuffer.every(n=>n===this.noteStabilityBuffer[0]);
+          if(stable){
+            const nEl=document.getElementById('calibrationNote'); if(nEl) nEl.textContent=note;
+            const st=document.getElementById('calibrationStatus'); if(st) st.textContent=`✓ Nota rilevata: ${note}`;
             this.noteStabilityBuffer=[]; this.readyForNextNote=false; this.lastNoteTime=Date.now();
           }
         }
@@ -390,6 +483,8 @@ class IntervalTrainerApp{
   saveCalibration(){
     this.isListening=false;
     if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; }
+    if(this.scriptNode){ try{this.scriptNode.disconnect()}catch(_){ } this.scriptNode=null; }
+    if(this.muteNode){ try{this.muteNode.disconnect()}catch(_){ } this.muteNode=null; }
     if(this.audioContext){ try{this.audioContext.close()}catch(_){ } this.audioContext=null; }
 
     this.volumeThreshold=parseFloat(document.getElementById('volumeSlider').value);
@@ -407,6 +502,8 @@ class IntervalTrainerApp{
   backFromCalibration(){
     this.isListening=false;
     if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; }
+    if(this.scriptNode){ try{this.scriptNode.disconnect()}catch(_){ } this.scriptNode=null; }
+    if(this.muteNode){ try{this.muteNode.disconnect()}catch(_){ } this.muteNode=null; }
     if(this.audioContext){ try{this.audioContext.close()}catch(_){ } this.audioContext=null; }
 
     this.noteStabilityBuffer=[]; this.volumeHistory=[]; this.currentSilenceFrames=0; this.readyForNextNote=true;
@@ -428,7 +525,7 @@ class IntervalTrainerApp{
       const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
       this.stream=stream; await this.buildAudioChain(stream);
       this.isListening=true; this.warmupStartTime=Date.now();
-      this.detectPitch();
+      if(!this.useScriptNode) this.detectPitch();
     }catch(err){
       console.error('Mic error (quiz):',err); alert('Impossibile accedere al microfono. Verifica i permessi.');
     }
@@ -437,6 +534,8 @@ class IntervalTrainerApp{
   stopQuiz(){
     this.isListening=false;
     if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; }
+    if(this.scriptNode){ try{this.scriptNode.disconnect()}catch(_){ } this.scriptNode=null; }
+    if(this.muteNode){ try{this.muteNode.disconnect()}catch(_){ } this.muteNode=null; }
     if(this.audioContext){ try{this.audioContext.close()}catch(_){ } this.audioContext=null; }
 
     this.currentQuestion=0; this.correctAnswers=0; this.detectedNotes=[]; this.noteStabilityBuffer=[]; this.volumeHistory=[];
@@ -466,7 +565,7 @@ class IntervalTrainerApp{
   }
 
   detectPitch(){
-    if(!this.isListening) return;
+    if(!this.isListening || this.useScriptNode) return; // su iOS gestiamo tutto in processAudioBlock
 
     this.analyser.getFloatTimeDomainData(this.dataArray);
 
@@ -481,21 +580,19 @@ class IntervalTrainerApp{
 
     if(Date.now()-this.warmupStartTime<this.warmupDuration){ requestAnimationFrame(()=>this.detectPitch()); return; }
 
-    // gating: spike OR superamento soglia diretto
     const spike = rms>(avg*this.spikeMultiplier) || rms>(this.volumeThreshold*1.1);
 
     const silenceThreshold=this.volumeThreshold*0.5;
-    if(rms<silenceThreshold){ this.currentSilenceFrames++; if(this.currentSilenceFrames>=this.silenceFramesRequired){ this.readyForNextNote=true; document.getElementById('volumeDot').classList.remove('active'); } }
+    if(rms<silenceThreshold){ this.currentSilenceFrames++; if(this.currentSilenceFrames>=this.silenceFramesRequired){ this.readyForNextNote=true; const d=document.getElementById('volumeDot'); if(d) d.classList.remove('active'); } }
     else this.currentSilenceFrames=0;
 
     const inCooldown=(Date.now()-this.lastNoteTime)<this.cooldownPeriod;
     const checksOk=(rms>this.volumeThreshold) && spike && this.readyForNextNote && !inCooldown;
 
     if(checksOk){
-      document.getElementById('volumeDot').classList.add('active');
-
+      const d=document.getElementById('volumeDot'); if(d) d.classList.add('active');
       const freq=this.yinPitch(this.dataArray,this.audioContext.sampleRate);
-      const f2=document.getElementById('freqValue2'); if(f2) f2.textContent = (freq>0?freq.toFixed(1):'—');
+      const f2=document.getElementById('freqValue2'); if(f2) f2.textContent=(freq>0?freq.toFixed(1):'—');
 
       if(freq>this.minPianoFreq && freq<this.maxPianoFreq){
         const note=this.frequencyToNote(freq);
@@ -519,71 +616,63 @@ class IntervalTrainerApp{
     requestAnimationFrame(()=>this.detectPitch());
   }
 
-  // ---------- YIN Pitch Detection ----------
-  yinPitch(buffer, sampleRate){
-    // YIN params
-    const threshold=0.15; // sensibile: più basso = più rilevazioni
+  // ---------- YIN ----------
+  yinPitch(buffer,sampleRate){
+    const threshold=0.15; // sensibilità
     const probabilityThreshold=0.1;
-    const yinBufferLength=Math.floor(buffer.length/2);
-    const yin = new Float32Array(yinBufferLength);
+    const yinLen=Math.floor(buffer.length/2);
+    const yin=new Float32Array(yinLen);
 
-    // Step 1: difference function
-    for(let tau=1; tau<yinBufferLength; tau++){
+    // difference function
+    for(let tau=1;tau<yinLen;tau++){
       let sum=0;
-      for(let i=0;i<yinBufferLength;i++){
-        const delta = buffer[i]-buffer[i+tau];
-        sum += delta*delta;
+      for(let i=0;i<yinLen;i++){
+        const d=buffer[i]-buffer[i+tau]; sum+=d*d;
       }
       yin[tau]=sum;
     }
     yin[0]=1;
 
-    // Step 2: cumulative mean normalized difference
-    let runningSum=0;
-    for(let tau=1; tau<yinBufferLength; tau++){
-      runningSum += yin[tau];
-      yin[tau] = yin[tau] * tau / runningSum;
+    // cumulative mean normalized difference
+    let run=0;
+    for(let tau=1;tau<yinLen;tau++){
+      run+=yin[tau];
+      yin[tau]=yin[tau]*tau/run;
     }
 
-    // Step 3: absolute threshold
-    let tauEstimate=-1;
-    for(let tau=2; tau<yinBufferLength; tau++){
-      if(yin[tau] < threshold){
-        while(tau+1<yinBufferLength && yin[tau+1] < yin[tau]) tau++;
-        tauEstimate=tau; break;
+    // absolute threshold
+    let tauEst=-1;
+    for(let tau=2;tau<yinLen;tau++){
+      if(yin[tau]<threshold){
+        while(tau+1<yinLen && yin[tau+1]<yin[tau]) tau++;
+        tauEst=tau; break;
       }
     }
-    if(tauEstimate===-1){
-      // fallback: min value
+    if(tauEst===-1){
       let min=Infinity, idx=-1;
-      for(let t=2;t<yinBufferLength;t++){ if(yin[t]<min){min=yin[t]; idx=t;} }
-      if(idx===-1 || min>0.6) return -1; // troppo incerto
-      tauEstimate=idx;
+      for(let t=2;t<yinLen;t++){ if(yin[t]<min){min=yin[t]; idx=t;} }
+      if(idx===-1 || min>0.6) return -1;
+      tauEst=idx;
     }
 
-    // Step 4: parabolic interpolation
-    const x0 = (tauEstimate < 1) ? tauEstimate : tauEstimate-1;
-    const x2 = (tauEstimate+1<yinBufferLength) ? tauEstimate+1 : tauEstimate;
-    const s0 = yin[x0], s1 = yin[tauEstimate], s2 = yin[x2];
-    const betterTau = tauEstimate + (s2 - s0) / (2 * (2*s1 - s2 - s0));
+    // parabolic interpolation
+    const x0=(tauEst<1)?tauEst:tauEst-1;
+    const x2=(tauEst+1<yinLen)?tauEst+1:tauEst;
+    const s0=yin[x0], s1=yin[tauEst], s2=yin[x2];
+    const betterTau=tauEst+(s2-s0)/(2*(2*s1 - s2 - s0));
 
-    // Step 5: frequency
-    const freq = sampleRate / betterTau;
-
-    // Step 6: probability (qualità)
-    const prob = 1 - yin[tauEstimate];
-    if(prob < probabilityThreshold) return -1;
-
+    const freq=sampleRate/betterTau;
+    const prob=1 - yin[tauEst];
+    if(prob<probabilityThreshold) return -1;
     return freq;
   }
 
   frequencyToNote(f){
-    if(f<=0 || !isFinite(f)) return null;
+    if(f<=0||!isFinite(f)) return null;
     const A4=440, C0=A4*Math.pow(2,-4.75);
     const names=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-    const n = Math.round(12*Math.log2(f/C0));
-    const name = names[((n%12)+12)%12];
-    return name;
+    const n=Math.round(12*Math.log2(f/C0));
+    return names[((n%12)+12)%12];
   }
 
   getMostFrequentNote(arr){
@@ -596,7 +685,7 @@ class IntervalTrainerApp{
     const expected=this.scales[this.currentScale][this.currentDegree];
     const ok=this.notesMatch(detected,expected);
     if(ok){ this.correctAnswers++; this.showResult(true,detected,expected); }
-    else this.showResult(false,detected,expected);
+    else { this.showResult(false,detected,expected); }
   }
 
   notesMatch(a,b){
@@ -609,10 +698,16 @@ class IntervalTrainerApp{
     const card=document.getElementById('resultCard'), icon=document.getElementById('resultIcon'),
           title=document.getElementById('resultTitle'), details=document.getElementById('resultDetails');
     card.style.display='block';
-    if(correct){ card.className='result-card correct'; icon.textContent='✓'; title.textContent='Corretto!'; details.innerHTML=`<strong>${expected}</strong> - Grado ${this.degreeNames[this.currentDegree]} di ${this.currentScale} Maggiore`; }
-    else{ card.className='result-card wrong'; icon.textContent='✗'; title.textContent='Sbagliato'; const played=detected?`<strong>${detected}</strong>`:'<em>non rilevata</em>'; details.innerHTML=`Hai suonato: ${played}<br>Nota corretta: <strong>${expected}</strong><br>Grado ${this.degreeNames[this.currentDegree]} di ${this.currentScale} Maggiore`; }
+    if(correct){
+      card.className='result-card correct'; icon.textContent='✓'; title.textContent='Corretto!';
+      details.innerHTML=`<strong>${expected}</strong> - Grado ${this.degreeNames[this.currentDegree]} di ${this.currentScale} Maggiore`;
+    }else{
+      card.className='result-card wrong'; icon.textContent='✗'; title.textContent='Sbagliato';
+      const played=detected?`<strong>${detected}</strong>`:'<em>non rilevata</em>';
+      details.innerHTML=`Hai suonato: ${played}<br>Nota corretta: <strong>${expected}</strong><br>Grado ${this.degreeNames[this.currentDegree]} di ${this.currentScale} Maggiore`;
+    }
 
-    setTimeout(()=>{ this.currentQuestion++; if(this.currentQuestion<this.totalQuestions){ this.generateQuestion(); }else{ this.showFinalScore(); } }, 2000);
+    setTimeout(()=>{ this.currentQuestion++; if(this.currentQuestion<this.totalQuestions){ this.generateQuestion(); } else { this.showFinalScore(); } }, 2000);
   }
 
   showFinalScore(){
@@ -634,13 +729,16 @@ class IntervalTrainerApp{
     document.querySelector('.question-card').style.display='block';
     document.querySelector('.status-indicator').style.display='flex';
     document.getElementById('finalScore').style.display='none';
-    if(this.audioContext){ try{this.audioContext.close()}catch(_){ } }
+
     if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; }
+    if(this.scriptNode){ try{this.scriptNode.disconnect()}catch(_){ } this.scriptNode=null; }
+    if(this.muteNode){ try{this.muteNode.disconnect()}catch(_){ } this.muteNode=null; }
+    if(this.audioContext){ try{this.audioContext.close()}catch(_){ } this.audioContext=null; }
   }
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
-  console.log('🚀 Scale Degree Trainer v6.2 – YIN + Filters');
+  console.log('🚀 Scale Degree Trainer v6.3 – iOS ScriptProcessor Fallback + YIN');
   window.app=new IntervalTrainerApp();
   const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   if(isMobile){ document.getElementById('mobileWarning').style.display='block'; window.app.applyPreset('mobile'); }
