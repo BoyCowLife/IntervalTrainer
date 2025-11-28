@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1a1a2e">
-<title>Scale Degree Trainer - Piano v6.9.6</title>
+<title>Scale Degree Trainer - Piano v6.9.7</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--primary-color:#4a90e2;--secondary-color:#7b68ee;--success-color:#4caf50;--error-color:#f44336;--bg-dark:#1a1a2e;--bg-card:#16213e;--text-primary:#fff;--text-secondary:#a0a0a0}
@@ -54,12 +54,47 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
 .volume-dot{width:18px;height:18px;border-radius:50%;background:var(--text-secondary);transition:.3s}
 .volume-dot.active{background:var(--success-color);box-shadow:0 0 18px var(--success-color)}
 .status-text{font-size:1rem;color:var(--text-secondary)}
+
+/* STILE BOX RISULTATI OTTIMIZZATO */
 .result-card{background:var(--bg-card);border-radius:16px;padding:24px;text-align:center}
 .result-card.correct{border:3px solid var(--success-color)}
 .result-card.wrong{border:3px solid var(--error-color)}
 .result-icon{font-size:3.6rem;margin-bottom:16px}
 .result-title{font-size:1.6rem;margin-bottom:12px}
 .result-details{color:var(--text-secondary);font-size:1rem;line-height:1.7}
+/* Stile base per desktop */
+.result-details strong {
+    display: block;
+    font-size: 2.6rem;
+    line-height: 1.1;
+    color: #ffffff;
+    margin-bottom: 6px;
+}
+
+/* MODIFICA: Versione Compatta per Mobile (evita scroll) */
+@media (max-width: 600px) {
+    .result-card {
+        padding: 16px; /* Meno padding */
+        margin-bottom: 8px;
+    }
+    .result-icon {
+        font-size: 2.2rem; /* Icona più piccola */
+        margin-bottom: 8px;
+    }
+    .result-title {
+        font-size: 1.4rem;
+        margin-bottom: 6px;
+    }
+    .result-details {
+        font-size: 0.95rem;
+        line-height: 1.35;
+    }
+    .result-details strong {
+        font-size: 1.6rem; /* Nota molto più piccola */
+        margin-bottom: 4px;
+    }
+}
+
 .final-score{background:var(--bg-card);border-radius:16px;padding:20px;text-align:center}
 .score-display{font-size:2.8rem;font-weight:700;background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:10px 0}
 .score-breakdown{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:16px 0}
@@ -68,27 +103,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
 .score-item-label{color:var(--text-secondary);margin-top:2px;font-size:0.9rem}
 .sticky-footer{position:sticky;bottom:0;z-index:2}
 .small{font-size:.9rem;opacity:.8}
+
 @media (max-width:768px){#setupScreen h1{font-size:2rem}.degree-question{font-size:2.2rem}}
 
-/* Nuova classe per la label dispositivo semplice */
 .device-badge {
-    margin: 8px 0 24px; /* Spazio sopra e sotto */
+    margin: 8px 0 24px;
     font-size: 1rem;
     font-weight: 500;
     opacity: 0.9;
-}
-
-.result-details strong {
-    display: block;
-    font-size: 2.6rem;
-    line-height: 1.1;
-    color: #ffffff;
-    margin-bottom: 6px;
-}
-@media (max-width: 480px) {
-    .result-details strong {
-        font-size: 2.2rem;
-    }
 }
 </style>
 </head>
@@ -96,7 +118,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
 <div class="container">
   <div id="setupScreen" class="screen active">
     <h1>🎹 Scale Degree Trainer</h1>
-    <div class="version-badge" id="versionBadge">v6.9.6 • UI Clean</div>
+    <div class="version-badge" id="versionBadge">v6.9.7 • Compact Alert</div>
     <p class="subtitle">Impara i gradi delle scale maggiori</p>
 
     <div class="setup-section">
@@ -244,7 +266,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
 </div>
 
 <script>
-const APP_VERSION='v6.9.6';
+const APP_VERSION='v6.9.7';
 
 class IntervalTrainerApp{
   constructor(){
@@ -703,7 +725,7 @@ class IntervalTrainerApp{
 
 document.addEventListener('DOMContentLoaded',()=>{
   console.log(`🚀 Scale Degree Trainer ${APP_VERSION}`);
-  document.getElementById('versionBadge').textContent=`${APP_VERSION} • UI Clean`;
+  document.getElementById('versionBadge').textContent=`${APP_VERSION} • Compact Alert`;
   window.app=new IntervalTrainerApp();
 
   // Rilevamento dispositivo e aggiornamento testo UI
