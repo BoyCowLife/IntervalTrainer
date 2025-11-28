@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1a1a2e">
-<title>Scale Degree Trainer - Piano v6.9.0</title>
+<title>Scale Degree Trainer - Piano v6.9.6</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--primary-color:#4a90e2;--secondary-color:#7b68ee;--success-color:#4caf50;--error-color:#f44336;--bg-dark:#1a1a2e;--bg-card:#16213e;--text-primary:#fff;--text-secondary:#a0a0a0}
@@ -19,7 +19,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
 #setupScreen h1{font-size:2.2rem;margin-bottom:6px;background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .version-badge{display:inline-block;margin-bottom:18px;padding:6px 10px;border-radius:10px;background:rgba(74,144,226,.15);color:#9ec8ff;font-size:.9rem;border:1px solid rgba(74,144,226,.35)}
 .subtitle{color:var(--text-secondary);margin-bottom:22px;font-size:1.05rem}
-.setup-section{width:100%;max-width:450px;margin-bottom:20px}
+.setup-section{width:100%;max-width:450px;margin-bottom:10px}
 .setup-section label{display:block;margin-bottom:10px;font-weight:600;font-size:1.05rem}
 .scale-dropdown{width:100%;padding:15px;background:var(--bg-card);border:2px solid var(--primary-color);border-radius:12px;color:var(--text-primary);font-size:1.05rem;cursor:pointer;transition:.3s}
 .scale-dropdown:hover{border-color:var(--secondary-color);box-shadow:0 5px 15px rgba(74,144,226,.3)}
@@ -60,17 +60,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
 .result-icon{font-size:3.6rem;margin-bottom:16px}
 .result-title{font-size:1.6rem;margin-bottom:12px}
 .result-details{color:var(--text-secondary);font-size:1rem;line-height:1.7}
-.final-score{background:var(--bg-card);border-radius:16px;padding:32px;text-align:center}
-.score-display{font-size:3.2rem;font-weight:700;background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:16px 0}
-.score-breakdown{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin:22px 0}
-.score-item{background:rgba(74,144,226,.1);padding:16px;border-radius:12px}
-.score-item-value{font-size:1.6rem;font-weight:700;color:var(--primary-color)}
-.score-item-label{color:var(--text-secondary);margin-top:4px}
+.final-score{background:var(--bg-card);border-radius:16px;padding:20px;text-align:center}
+.score-display{font-size:2.8rem;font-weight:700;background:linear-gradient(135deg,var(--primary-color),var(--secondary-color));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:10px 0}
+.score-breakdown{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:16px 0}
+.score-item{background:rgba(74,144,226,.1);padding:12px;border-radius:12px}
+.score-item-value{font-size:1.4rem;font-weight:700;color:var(--primary-color)}
+.score-item-label{color:var(--text-secondary);margin-top:2px;font-size:0.9rem}
 .sticky-footer{position:sticky;bottom:0;z-index:2}
 .small{font-size:.9rem;opacity:.8}
-@media (max-width:768px){#setupScreen h1{font-size:2rem}.degree-question{font-size:2.2rem}.score-breakdown{grid-template-columns:1fr}}
+@media (max-width:768px){#setupScreen h1{font-size:2rem}.degree-question{font-size:2.2rem}}
 
-/* Nota grande nel responso */
+/* Nuova classe per la label dispositivo semplice */
+.device-badge {
+    margin: 8px 0 24px; /* Spazio sopra e sotto */
+    font-size: 1rem;
+    font-weight: 500;
+    opacity: 0.9;
+}
+
 .result-details strong {
     display: block;
     font-size: 2.6rem;
@@ -89,7 +96,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
 <div class="container">
   <div id="setupScreen" class="screen active">
     <h1>🎹 Scale Degree Trainer</h1>
-    <div class="version-badge" id="versionBadge">v6.9.0 • iOS mic path relaxed</div>
+    <div class="version-badge" id="versionBadge">v6.9.6 • UI Clean</div>
     <p class="subtitle">Impara i gradi delle scale maggiori</p>
 
     <div class="setup-section">
@@ -103,10 +110,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
       </select>
     </div>
 
-    <div id="mobileWarning" class="info-box warning-box" style="display:none;max-width:420px;">
-      <h3>⚠️ iPhone/iPad rilevato</h3>
-      <p>Se non compare la frequenza: apri <em>Calibrazione</em>, abbassa “Volume Minimo” o avvicina il microfono.</p>
-    </div>
+    <div id="deviceDetected" class="device-badge">Rilevamento dispositivo...</div>
 
     <div class="info-box" style="max-width:420px;">
       <p>Serve una ripassata? Apri le istruzioni o vai in Calibrazione.</p>
@@ -197,7 +201,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
 
   <div id="quizScreen" class="screen">
     <div class="quiz-header">
-      <h2 id="quizTitle">Scale Degree Trainer</h2>
+      <h2 id="quizTitle">Scale Degree</h2>
       <div class="progress-info">Domanda <span id="currentQuestion">1</span> di 30</div>
     </div>
 
@@ -225,22 +229,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubunt
     </div>
 
     <div id="finalScore" class="final-score" style="display:none;">
-      <h2>🎉 Sessione Completata!</h2>
+      <h2 style="font-size:1.5rem; margin-bottom:4px;">🎉 Sessione Completata!</h2>
       <div class="score-display" id="finalPercentage">0%</div>
       <div class="score-breakdown">
         <div class="score-item"><div class="score-item-value" id="correctCount">0</div><div class="score-item-label">Corrette</div></div>
         <div class="score-item"><div class="score-item-value" id="wrongCount">0</div><div class="score-item-label">Sbagliate</div></div>
       </div>
-      <div style="display:flex; gap:12px; justify-content:center; margin-top:24px;">
-        <button class="btn-primary" id="retrySameBtn" style="flex:1;">🔄 Riprova</button>
-        <button class="btn-primary" id="goHomeBtn" style="flex:1; background:rgba(74,144,226,.2); border:1px solid rgba(74,144,226,.4);">🏠 Home</button>
+      <div style="display:flex; gap:12px; justify-content:center; margin-top:16px;">
+        <button class="btn-primary" id="retrySameBtn" style="flex:1; padding:12px;">🔄 Riprova</button>
+        <button class="btn-primary" id="goHomeBtn" style="flex:1; padding:12px; background:rgba(74,144,226,.2); border:1px solid rgba(74,144,226,.4);">🏠 Home</button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-const APP_VERSION='v6.9.0';
+const APP_VERSION='v6.9.6';
 
 class IntervalTrainerApp{
   constructor(){
@@ -252,6 +256,9 @@ class IntervalTrainerApp{
     this.audioContext=null; this.stream=null;
     this.preGain=null; this.hp=null; this.lp=null; this.analyser=null; this.dataArray=null; this.scriptNode=null; this.muteNode=null;
     this.isListening=false;
+
+    // Wake Lock
+    this.wakeLock = null;
 
     // Device paths
     this.isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -281,6 +288,19 @@ class IntervalTrainerApp{
     this.initEventListeners(); this.initSliders();
   }
 
+  // --- WAKE LOCK ---
+  async keepScreenAwake(){
+    try {
+      if ('wakeLock' in navigator) {
+        this.wakeLock = await navigator.wakeLock.request('screen');
+        console.log('Wake Lock attivo: schermo sempre acceso.');
+      }
+    } catch (err) { console.log('Wake Lock fallito:', err); }
+  }
+  releaseScreen(){
+    if (this.wakeLock) { this.wakeLock.release().then(() => { this.wakeLock = null; }); }
+  }
+
   initEventListeners(){
     const qs=(id)=>document.getElementById(id);
     qs('scaleSelect').addEventListener('change',e=>this.selectedScale=e.target.value);
@@ -292,11 +312,12 @@ class IntervalTrainerApp{
     qs('startBtn').addEventListener('click',()=>this.startQuiz());
     qs('stopQuizBtn').addEventListener('click',()=>this.stopQuiz());
     
-    // Modifica 2: Listener per i nuovi bottoni
     qs('retrySameBtn').addEventListener('click',()=>this.retrySession());
     qs('goHomeBtn').addEventListener('click',()=>this.restart());
 
-    // iOS resume
+    document.addEventListener('visibilitychange', async () => {
+      if (this.wakeLock !== null && document.visibilityState === 'visible') { await this.keepScreenAwake(); }
+    });
     document.body.addEventListener('touchend',async()=>{
       if(this.audioContext && this.audioContext.state==='suspended'){ try{await this.audioContext.resume()}catch(_){ } }
     },{passive:true});
@@ -579,11 +600,9 @@ class IntervalTrainerApp{
     }, 1800);
   }
 
-  // Modifica 3: Logica per spegnere audio alla fine
   async showFinalScore(){
     this.isListening=false;
-    
-    // STOP Audio completo
+    this.releaseScreen();
     if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; }
     for(const n of [this.scriptNode,this.muteNode,this.lp,this.hp,this.preGain]){ try{ n && n.disconnect && n.disconnect(); }catch(_){} }
     this.scriptNode=this.muteNode=this.lp=this.hp=this.preGain=null;
@@ -599,14 +618,11 @@ class IntervalTrainerApp{
     document.getElementById('wrongCount').textContent=this.totalQuestions-this.correctAnswers;
   }
   
-  // Modifica 4: Funzione Riprova
   async retrySession(){
     this.currentQuestion=0; this.correctAnswers=0; this.lastDegree=null;
-    
     document.getElementById('finalScore').style.display='none';
     document.querySelector('.question-card').style.display='block';
     document.querySelector('.status-indicator').style.display='flex';
-    
     await this.setupAudio();
     this.generateQuestion();
   }
@@ -631,7 +647,13 @@ class IntervalTrainerApp{
     }
   }
 
-  async startQuiz(){ this.show('quizScreen'); await this.setupAudio(); this.generateQuestion(); }
+  async startQuiz(){ 
+    this.show('quizScreen'); 
+    await this.keepScreenAwake();
+    await this.setupAudio(); 
+    this.generateQuestion(); 
+  }
+  
   async setupAudio(){
     try{
       const stream=await this.getStream(); this.stream=stream; await this.buildAudioChain(stream);
@@ -642,6 +664,7 @@ class IntervalTrainerApp{
 
   stopQuiz(){
     this.isListening=false;
+    this.releaseScreen();
     if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); this.stream=null; }
     for(const n of [this.scriptNode,this.muteNode,this.lp,this.hp,this.preGain]){ try{ n && n.disconnect && n.disconnect(); }catch(_){} }
     this.scriptNode=this.muteNode=this.lp=this.hp=this.preGain=null;
@@ -653,6 +676,7 @@ class IntervalTrainerApp{
   }
 
   restart(){
+    this.releaseScreen();
     this.currentQuestion=0; this.correctAnswers=0; this.lastDegree=null;
     this.show('setupScreen');
     document.querySelector('.question-card').style.display='block';
@@ -679,10 +703,23 @@ class IntervalTrainerApp{
 
 document.addEventListener('DOMContentLoaded',()=>{
   console.log(`🚀 Scale Degree Trainer ${APP_VERSION}`);
-  document.getElementById('versionBadge').textContent=`${APP_VERSION} • iOS mic path relaxed`;
+  document.getElementById('versionBadge').textContent=`${APP_VERSION} • UI Clean`;
   window.app=new IntervalTrainerApp();
-  const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  if(isMobile){ document.getElementById('mobileWarning').style.display='block'; }
+
+  // Rilevamento dispositivo e aggiornamento testo UI
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isMobile = /Android/i.test(navigator.userAgent);
+  const el = document.getElementById('deviceDetected');
+  if(el){
+    if(isIOS){
+        el.innerHTML = "📱 iPhone/iPad rilevato";
+        el.style.color = "#ffb74d"; // Un leggero arancione per iOS
+    } else if(isMobile) {
+         el.innerHTML = "📱 Android rilevato";
+    } else {
+         el.innerHTML = "💻 Computer rilevato";
+    }
+  }
 });
 </script>
 </body>
